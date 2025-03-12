@@ -4,7 +4,7 @@ import time
 def receive_serial_data():
     try:
         # Start the Arduino simulation process and read output
-        process = subprocess.Popen(["/home/pi/ElectricNose-Arduino/arduino_sim"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(["/home/admin/ElectricNose-Arduino/arduino_sim"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         print("Listening for serial data...")
 
