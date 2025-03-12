@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 def receive_serial_data():
     try:
@@ -14,6 +15,9 @@ def receive_serial_data():
                 if output.startswith("SENSOR_DATA:"):
                     sensor_value = output.split(":")[1].strip()
                     print(f"Received Sensor Data: {sensor_value}")
+
+            time.sleep(1)  # Prevent CPU overuse
+
     except KeyboardInterrupt:
         print("Stopped receiving data.")
     except Exception as e:
@@ -21,3 +25,4 @@ def receive_serial_data():
 
 if __name__ == "__main__":
     receive_serial_data()
+
