@@ -39,7 +39,7 @@ def read_sensor_data():
 
 while True:
     sensor_json = read_sensor_data()
-    print(sensor_json)
+    #print(sensor_json)
 
     # Save JSON data to a file (can be read by another process)
     with open("/home/admin/ElectricNose-SensorReader/sensor_data.json", "w") as f:
