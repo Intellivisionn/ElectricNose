@@ -7,24 +7,6 @@ import glob
 # Path to sensor data JSON file
 JSON_FILE = "/home/admin/ElectricNose-SensorReader/sensor_data.json"
 
-# Initialize Pygame
-pygame.init()
-pygame.mouse.set_visible(False)
-
-# Get screen dimensions dynamically
-info = pygame.display.Info()
-WIDTH, HEIGHT = info.current_w, info.current_h  # Dynamically detect screen size
-
-# Dynamically scale font sizes based on screen resolution
-font_title_size = int(HEIGHT * 0.06)  # ~6% of screen height
-font_data_size = int(HEIGHT * 0.04)   # ~4% of screen height
-font_small_size = int(HEIGHT * 0.03)  # ~3% of screen height
-
-# Initialize fonts with scaled sizes
-font_title = pygame.font.Font(None, font_title_size)
-font_data = pygame.font.Font(None, font_data_size)
-font_small = pygame.font.Font(None, font_small_size)
-
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -53,71 +35,95 @@ def load_sensor_data():
             return None
     return None
 
-# Function to render text
-def render_text(text, font, color, x, y, screen):
+# Function to render centered text
+def render_text_centered(text, font, color, y, screen):
     text_surface = font.render(text, True, color)
-    screen.blit(text_surface, (x, y))
+    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, y))
+    screen.blit(text_surface, text_rect)
 
 # Function to display sensor data
-def draw_sensor_data(screen, sensor_data):
+def draw_sensor_data(screen, sensor_data, fonts):
     screen.fill(BLACK)  # Clear screen
 
     if not sensor_data:
-        render_text("Error: No sensor data", font_title, RED, int(WIDTH * 0.05), int(HEIGHT * 0.3), screen)
+        render_text_centered("Error: No sensor data", fonts["title"], RED, screen.get_height() // 3, screen)
         pygame.display.flip()
         return
 
-    # Handle JSON structure (list vs dictionary)
     if isinstance(sensor_data, list):
         sensor_data = sensor_data[0]  # Extract first object if it's a list
     elif not isinstance(sensor_data, dict):
-        render_text("Invalid JSON format!", font_title, RED, int(WIDTH * 0.05), int(HEIGHT * 0.3), screen)
+        render_text_centered("Invalid JSON format!", fonts["title"], RED, screen.get_height() // 3, screen)
         pygame.display.flip()
         return
 
-    # Title
-    render_text("Electric Nose Sensor Data", font_title, BLUE, int(WIDTH * 0.2), int(HEIGHT * 0.05), screen)
+    # Title (Centered at top)
+    render_text_centered("Electric Nose Sensor Data", fonts["title"], BLUE, int(screen.get_height() * 0.08), screen)
 
-    y_offset = int(HEIGHT * 0.15)  # Adjusted dynamically for better fit
+    y_offset = int(screen.get_height() * 0.18)  # Start drawing sensor data
 
     for sensor, readings in sensor_data.items():
-        render_text(sensor, font_data, GREEN, int(WIDTH * 0.05), y_offset, screen)
-        y_offset += int(HEIGHT * 0.05)  # Adjusted dynamically
+        render_text_centered(sensor, fonts["data"], GREEN, y_offset, screen)
+        y_offset += int(screen.get_height() * 0.05)  # Spacing between sensors
 
         for key, value in readings.items():
-            render_text(f"{key}: {value}", font_small, WHITE, int(WIDTH * 0.07), y_offset, screen)
-            y_offset += int(HEIGHT * 0.04)  # Adjusted dynamically
+            text = f"{key}: {value}"
+            render_text_centered(text, fonts["small"], WHITE, y_offset, screen)
+            y_offset += int(screen.get_height() * 0.04)  # Adjusted dynamically
 
-        y_offset += int(HEIGHT * 0.02)  # Extra spacing between sensors
+        y_offset += int(screen.get_height() * 0.02)  # Extra spacing between sensors
 
     pygame.display.flip()
 
+# Function to initialize Pygame
+def start_pygame():
+    print("Initializing Pygame...")
+    os.system("chvt 7")  # Ensure framebuffer console is active
+    os.system("fbset -depth 32 && fbset -depth 16")  # Reset framebuffer depth
+
+    pygame.init()
+    pygame.mouse.set_visible(False)
+    screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+
+    # Dynamically scale font sizes
+    fonts = {
+        "title": pygame.font.Font(None, int(screen.get_height() * 0.06)),  # 6% of screen height
+        "data": pygame.font.Font(None, int(screen.get_height() * 0.045)),  # 4.5% of screen height
+        "small": pygame.font.Font(None, int(screen.get_height() * 0.035)), # 3.5% of screen height
+    }
+
+    return screen, fonts
+
 # Main loop
 running = True
-display_active = False  # Track whether the display is on
+display_active = False
+screen = None
+fonts = None
 
 while running:
     hdmi_connected = is_hdmi_connected()
 
     if hdmi_connected and not display_active:
-        print("HDMI connected, starting pygame display.")
-        screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+        print("HDMI connected, starting Pygame...")
+        screen, fonts = start_pygame()
         display_active = True
 
     elif not hdmi_connected and display_active:
-        print("HDMI disconnected, stopping pygame display.")
+        print("HDMI disconnected, stopping Pygame...")
         pygame.quit()
+        screen = None
+        fonts = None
         display_active = False
 
     if display_active:
         sensor_data = load_sensor_data()
-        draw_sensor_data(screen, sensor_data)
+        draw_sensor_data(screen, sensor_data, fonts)
 
-    # Event handling
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-            running = False
+        # Handle events only when display is active
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                running = False
 
-    time.sleep(1)  # Refresh every 5 seconds
+    time.sleep(5)  # Check HDMI status every 5 seconds
 
 pygame.quit()
