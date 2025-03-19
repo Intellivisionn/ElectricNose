@@ -1,4 +1,5 @@
 import time
+import json
 from smbus2 import SMBus
 import board
 import adafruit_bme680
@@ -14,33 +15,34 @@ bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c, address=0x76)
 sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
 sgp30.iaq_init()
 
+def read_sensor_data():
+    """ Reads sensor data and returns it as a JSON-formatted dictionary. """
+    data = {
+        "BME680": {
+            "Temperature": round(bme680.temperature, 2),
+            "Humidity": round(bme680.humidity, 2),
+            "Pressure": round(bme680.pressure, 2),
+            "GasResistance": bme680.gas
+        },
+        "SGP30": {
+            "CO2": sgp30.eCO2,
+            "TVOC": sgp30.TVOC
+        },
+        "Grove": {
+            "NO2": bus.read_i2c_block_data(0x08, 0x01, 2),
+            "C2H5CH": bus.read_i2c_block_data(0x08, 0x03, 2),
+            "VOC": bus.read_i2c_block_data(0x08, 0x05, 2),
+            "CO": bus.read_i2c_block_data(0x08, 0x07, 2)
+        }
+    }
+    return json.dumps(data, indent=4)
 
 while True:
-    # Read BME680 Data
-    temperature = bme680.temperature
-    humidity = bme680.humidity
-    pressure = bme680.pressure
-    gas_resistance = bme680.gas
+    sensor_json = read_sensor_data()
+    print(sensor_json)
 
-    # Read SGP30 Data
-    co2_eq = sgp30.eCO2
-    tvoc = sgp30.TVOC
+    # Save JSON data to a file (can be read by another process)
+    with open("/home/admin/ElectricNose-SensorReader/sensor_data.json", "w") as f:
+        f.write(sensor_json)
 
-    # Print Results
-    print("\nBME680 Data:")
-    print(f"  Temperature: {temperature:.2f} °C")
-    print(f"  Humidity: {humidity:.2f} %")
-    print(f"  Pressure: {pressure:.2f} hPa")
-    print(f"  Gas Resistance: {gas_resistance} Ω")
-
-    print("\nSGP30 Data:")
-    print(f"  CO2: {co2_eq} ppm")
-    print(f"  TVOC: {tvoc} ppb")
-
-    print("\nGrove Data:")
-    print(f"  NO2: {bus.read_i2c_block_data(0x08, 0x01, 2)}")
-    print(f"  C2H5CH: {bus.read_i2c_block_data(0x08, 0x03, 2)}")
-    print(f"  VOC: {bus.read_i2c_block_data(0x08, 0x05, 2)}")
-    print(f"  CO: {bus.read_i2c_block_data(0x08, 0x07, 2)}")
-    
     time.sleep(2)
