@@ -34,7 +34,7 @@ class GroveGasSensor:
     
     def _write_byte(self, command):
         """ Send a single command byte over I2C. """
-        print(f"Writing command {hex(command)} to I2C address {hex(self.address)}")
+        #print(f"Writing command {hex(command)} to I2C address {hex(self.address)}")
         self.bus.write_byte(self.address, command)
         time.sleep(0.01)
     
@@ -44,7 +44,7 @@ class GroveGasSensor:
         time.sleep(0.05)  # Allow time for sensor to respond
         data = self.bus.read_i2c_block_data(self.address, command, 4)
         value = int.from_bytes(data, byteorder='little')
-        print(f"Read {value} from command {hex(command)}")
+        #print(f"Read {value} from command {hex(command)}")
         return value
     
     def measure_no2(self):
@@ -74,13 +74,17 @@ class GroveGasSensor:
 
     def close(self):
         """ Close the I2C connection. """
-        print("Closing I2C connection.")
+        #print("Closing I2C connection.")
         self.bus.close()
 
 if __name__ == "__main__":
     sensor = GroveGasSensor()
-    print("NO2 Level:", sensor.measure_no2())
-    print("Ethanol Level:", sensor.measure_ethanol())
-    print("VOC Level:", sensor.measure_voc())
-    print("CO Level:", sensor.measure_co())
+    while True:
+        print("NO2 Level:", sensor.measure_no2())
+        print("Ethanol Level:", sensor.measure_ethanol())
+        print("VOC Level:", sensor.measure_voc())
+        print("CO Level:", sensor.measure_co())
+        time.sleep(2)
+        if input().lower() == 'q':
+            break
     sensor.close()
