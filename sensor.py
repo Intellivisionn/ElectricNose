@@ -16,7 +16,7 @@ bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c, address=0x76)
 sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
 sgp30.iaq_init()
 
-grove = GroveGasSensor(i2c)
+grove = GroveGasSensor(bus)
 
 def read_sensor_data():
     """ Reads sensor data and returns it as a JSON-formatted dictionary. """
