@@ -30,7 +30,7 @@ class GroveGasSensor:
         """ Read 4 bytes of data from the sensor after sending a command. """
         self._write_byte(command)
         time.sleep(0.05)  # Allow time for sensor to respond
-        data = self.bus.read_i2c_block_data(self.address, command, 4)
+        data = self.bus.read_i2c_block_data(self.address, command, 2)
         value = int.from_bytes(data, byteorder='little')
         print(f"Read {value} from command {hex(command)}")
         return value
