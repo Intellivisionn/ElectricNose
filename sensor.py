@@ -28,7 +28,7 @@ def read_sensor_data():
             "CO2": sgp30.eCO2,
             "TVOC": sgp30.TVOC
         },
-        "Grove": {register: bus.read_i2c_block_data(0x08, register, 2) for register in range(0x00, 0x13)}
+        "Grove": {register: bus.read_i2c_block_data(0x08, register, 2) for register in range(0x00, 0x09)}
     }
     return json.dumps(data, indent=4)
 
