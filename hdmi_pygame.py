@@ -123,6 +123,10 @@ while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 running = False
+    else:
+        print("No display detected. Waiting for HDMI...")
+        time.sleep(5)  # Wait 5 seconds before checking again to avoid high CPU usage
+        continue  # Skip event handling when display is off
 
     time.sleep(5)  # Check HDMI status every 5 seconds
 
