@@ -1,0 +1,242 @@
+[
+    {
+        "timestamp": "2025-03-19T13:07:33.000736",
+        "sensor_value": 48.95
+    },
+    {
+        "timestamp": "2025-03-19T13:07:34.001477",
+        "sensor_value": 72.85
+    },
+    {
+        "timestamp": "2025-03-19T13:07:35.001960",
+        "sensor_value": 39.59
+    },
+    {
+        "timestamp": "2025-03-19T13:07:36.002272",
+        "sensor_value": 1.2
+    },
+    {
+        "timestamp": "2025-03-19T13:07:37.002632",
+        "sensor_value": 59.22
+    },
+    {
+        "timestamp": "2025-03-19T13:07:38.003172",
+        "sensor_value": 25.83
+    },
+    {
+        "timestamp": "2025-03-19T13:07:39.003877",
+        "sensor_value": 36.11
+    },
+    {
+        "timestamp": "2025-03-19T13:07:40.004181",
+        "sensor_value": 69.85
+    },
+    {
+        "timestamp": "2025-03-19T13:07:41.004685",
+        "sensor_value": 98.93
+    },
+    {
+        "timestamp": "2025-03-19T13:07:42.005222",
+        "sensor_value": 65.36
+    },
+    {
+        "timestamp": "2025-03-19T13:07:43.005884",
+        "sensor_value": 63.41
+    },
+    {
+        "timestamp": "2025-03-19T13:07:44.005968",
+        "sensor_value": 36.96
+    },
+    {
+        "timestamp": "2025-03-19T13:07:45.006524",
+        "sensor_value": 56.71
+    },
+    {
+        "timestamp": "2025-03-19T13:07:46.006941",
+        "sensor_value": 94.9
+    },
+    {
+        "timestamp": "2025-03-19T13:07:47.007158",
+        "sensor_value": 1.55
+    },
+    {
+        "timestamp": "2025-03-19T13:07:48.007441",
+        "sensor_value": 46.89
+    },
+    {
+        "timestamp": "2025-03-19T13:07:49.007779",
+        "sensor_value": 84.45
+    },
+    {
+        "timestamp": "2025-03-19T13:07:50.008165",
+        "sensor_value": 85.9
+    },
+    {
+        "timestamp": "2025-03-19T13:07:51.008858",
+        "sensor_value": 24.79
+    },
+    {
+        "timestamp": "2025-03-19T13:07:52.009428",
+        "sensor_value": 65.37
+    },
+    {
+        "timestamp": "2025-03-19T13:07:53.009820",
+        "sensor_value": 65.88
+    },
+    {
+        "timestamp": "2025-03-19T13:07:54.010138",
+        "sensor_value": 43.95
+    },
+    {
+        "timestamp": "2025-03-19T13:07:55.010355",
+        "sensor_value": 59.78
+    },
+    {
+        "timestamp": "2025-03-19T13:07:56.010664",
+        "sensor_value": 72.02
+    },
+    {
+        "timestamp": "2025-03-19T13:07:57.010891",
+        "sensor_value": 95.06
+    },
+    {
+        "timestamp": "2025-03-19T13:07:58.011125",
+        "sensor_value": 76.09
+    },
+    {
+        "timestamp": "2025-03-19T13:07:59.011481",
+        "sensor_value": 71.99
+    },
+    {
+        "timestamp": "2025-03-19T13:08:00.012133",
+        "sensor_value": 37.71
+    },
+    {
+        "timestamp": "2025-03-19T13:08:01.012669",
+        "sensor_value": 81.41
+    },
+    {
+        "timestamp": "2025-03-19T13:08:02.013299",
+        "sensor_value": 63.29
+    },
+    {
+        "timestamp": "2025-03-19T13:08:03.013712",
+        "sensor_value": 83.29
+    },
+    {
+        "timestamp": "2025-03-19T13:08:04.013952",
+        "sensor_value": 79.97
+    },
+    {
+        "timestamp": "2025-03-19T13:08:05.014612",
+        "sensor_value": 78.11
+    },
+    {
+        "timestamp": "2025-03-19T13:08:06.015215",
+        "sensor_value": 56.52
+    },
+    {
+        "timestamp": "2025-03-19T13:08:07.015867",
+        "sensor_value": 78.6
+    },
+    {
+        "timestamp": "2025-03-19T13:08:08.016357",
+        "sensor_value": 2.19
+    },
+    {
+        "timestamp": "2025-03-19T13:08:09.016805",
+        "sensor_value": 37.08
+    },
+    {
+        "timestamp": "2025-03-19T13:08:10.017285",
+        "sensor_value": 89.88
+    },
+    {
+        "timestamp": "2025-03-19T13:08:11.017977",
+        "sensor_value": 73.97
+    },
+    {
+        "timestamp": "2025-03-19T13:08:12.018356",
+        "sensor_value": 25.41
+    },
+    {
+        "timestamp": "2025-03-19T13:08:13.018998",
+        "sensor_value": 21.89
+    },
+    {
+        "timestamp": "2025-03-19T13:08:14.019393",
+        "sensor_value": 39.17
+    },
+    {
+        "timestamp": "2025-03-19T13:08:15.019825",
+        "sensor_value": 53.97
+    },
+    {
+        "timestamp": "2025-03-19T13:08:16.020498",
+        "sensor_value": 22.93
+    },
+    {
+        "timestamp": "2025-03-19T13:08:17.021111",
+        "sensor_value": 51.95
+    },
+    {
+        "timestamp": "2025-03-19T13:08:18.021387",
+        "sensor_value": 2.56
+    },
+    {
+        "timestamp": "2025-03-19T13:08:19.021879",
+        "sensor_value": 71.1
+    },
+    {
+        "timestamp": "2025-03-19T13:08:20.022135",
+        "sensor_value": 66.8
+    },
+    {
+        "timestamp": "2025-03-19T13:08:21.022400",
+        "sensor_value": 61.89
+    },
+    {
+        "timestamp": "2025-03-19T13:08:22.023000",
+        "sensor_value": 0.74
+    },
+    {
+        "timestamp": "2025-03-19T13:08:23.023438",
+        "sensor_value": 30.21
+    },
+    {
+        "timestamp": "2025-03-19T13:08:24.023904",
+        "sensor_value": 84.97
+    },
+    {
+        "timestamp": "2025-03-19T13:08:25.024214",
+        "sensor_value": 54.83
+    },
+    {
+        "timestamp": "2025-03-19T13:08:26.024455",
+        "sensor_value": 79.92
+    },
+    {
+        "timestamp": "2025-03-19T13:08:27.025161",
+        "sensor_value": 15.79
+    },
+    {
+        "timestamp": "2025-03-19T13:08:28.025472",
+        "sensor_value": 82.2
+    },
+    {
+        "timestamp": "2025-03-19T13:08:29.026024",
+        "sensor_value": 64.54
+    },
+    {
+        "timestamp": "2025-03-19T13:08:30.026659",
+        "sensor_value": 52.5
+    },
+    {
+        "timestamp": "2025-03-19T13:08:31.027231",
+        "sensor_value": 71.01
+    },
+    {
+        "timestamp": "2025-03-19T13:08:32.027765",
+        "sensor_value": 76.41
+    }
+]
