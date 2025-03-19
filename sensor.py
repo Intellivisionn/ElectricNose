@@ -32,7 +32,7 @@ class GroveGasSensor:
         time.sleep(0.05)  # Allow time for sensor to respond
         data = self.bus.read_i2c_block_data(self.address, command, 4)
         value = int.from_bytes(data, byteorder='little')
-        #print(f"Read {value} from command {hex(command)}")
+        print(f"Read {value} from command {hex(command)}")
         return value
     
     def measure_no2(self):
