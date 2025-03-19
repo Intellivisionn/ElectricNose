@@ -17,7 +17,7 @@ WARMING_DOWN = 0xFF
 
 class GroveGasSensor:
     def __init__(self, i2c_bus, address=DEFAULT_I2C_ADDRESS):
-        self.bus = smbus2.SMBus(i2c_bus)
+        self.bus = i2c_bus
         self.address = address
     
     def _write_byte(self, command):
