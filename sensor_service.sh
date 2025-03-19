@@ -2,7 +2,7 @@
 
 # Define paths
 REPO_DIR="/home/admin/ElectricNose-SensorReader"
-VENV_DIR="$REPO_DIR/bin/activate"
+VENV_DIR="$REPO_DIR/venv/bin/activate"
 PYTHON_SCRIPT="$REPO_DIR/sensor.py"
 LOG_FILE="/var/log/sensor_service.log"
 
