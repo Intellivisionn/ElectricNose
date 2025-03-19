@@ -22,9 +22,10 @@ class GroveGasSensor:
 
     def preheat(self):
         """ Warm up the sensor before reading. """
+        print("Preheating sensor...")
         self._write_byte(WARMING_UP)
         self.is_preheated = True
-        time.sleep(1)
+        time.sleep(5)  # Increased preheat time
     
     def unpreheat(self):
         """ Turn off the preheat mode. """
@@ -33,47 +34,47 @@ class GroveGasSensor:
     
     def _write_byte(self, command):
         """ Send a single command byte over I2C. """
+        print(f"Writing command {hex(command)} to I2C address {hex(self.address)}")
         self.bus.write_byte(self.address, command)
         time.sleep(0.01)
     
-    def _read_4_bytes(self):
-        """ Read 4 bytes of data from the sensor. """
-        data = self.bus.read_i2c_block_data(self.address, 0, 4)
-        return int.from_bytes(data, byteorder='little')
+    def _read_4_bytes(self, command):
+        """ Read 4 bytes of data from the sensor after sending a command. """
+        self._write_byte(command)
+        time.sleep(0.05)  # Allow time for sensor to respond
+        data = self.bus.read_i2c_block_data(self.address, command, 4)
+        value = int.from_bytes(data, byteorder='little')
+        print(f"Read {value} from command {hex(command)}")
+        return value
     
     def measure_no2(self):
         """ Measure NO2 gas concentration. """
-        return self._measure_gas(GM_102B)
+        return self._read_4_bytes(GM_102B)
     
     def measure_ethanol(self):
         """ Measure Ethanol (C2H5OH) gas concentration. """
-        return self._measure_gas(GM_302B)
+        return self._read_4_bytes(GM_302B)
     
     def measure_voc(self):
         """ Measure VOC gas concentration. """
-        return self._measure_gas(GM_502B)
+        return self._read_4_bytes(GM_502B)
     
     def measure_co(self):
         """ Measure CO gas concentration. """
-        return self._measure_gas(GM_702B)
-    
-    def _measure_gas(self, command):
-        """ Generic gas measurement function. """
-        if not self.is_preheated:
-            self.preheat()
-        self._write_byte(command)
-        return self._read_4_bytes()
+        return self._read_4_bytes(GM_702B)
     
     def change_address(self, new_address):
         """ Change the I2C address of the sensor. """
         if new_address < 0x08 or new_address > 0x7F:
             raise ValueError("Invalid I2C address. Must be between 0x08 and 0x7F.")
+        print(f"Changing I2C address to {hex(new_address)}")
         self.bus.write_i2c_block_data(self.address, CHANGE_I2C_ADDR, [new_address])
         self.address = new_address
         time.sleep(0.1)
 
     def close(self):
         """ Close the I2C connection. """
+        print("Closing I2C connection.")
         self.bus.close()
 
 if __name__ == "__main__":
