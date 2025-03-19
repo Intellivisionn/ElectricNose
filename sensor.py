@@ -28,18 +28,13 @@ def read_sensor_data():
             "CO2": sgp30.eCO2,
             "TVOC": sgp30.TVOC
         },
-        "Grove": {
-            "NO2": bus.read_i2c_block_data(0x08, 0x01, 2),
-            "C2H5CH": bus.read_i2c_block_data(0x08, 0x03, 2),
-            "VOC": bus.read_i2c_block_data(0x08, 0x05, 2),
-            "CO": bus.read_i2c_block_data(0x08, 0x07, 2)
-        }
+        "Grove": {register: bus.read_i2c_block_data(0x08, register, 2) for register in range(0x00, 0x13)}
     }
     return json.dumps(data, indent=4)
 
 while True:
     sensor_json = read_sensor_data()
-    #print(sensor_json)
+    print(sensor_json)
 
     # Save JSON data to a file (can be read by another process)
     with open("/home/admin/ElectricNose-SensorReader/sensor_data.json", "w") as f:
