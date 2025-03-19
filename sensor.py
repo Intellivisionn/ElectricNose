@@ -73,13 +73,15 @@ class GroveGasSensor:
 
 if __name__ == "__main__":
     sensor = GroveGasSensor()
+    i = 0
     while True:
+        print(f"----------[Repetition: {i}]-----------")
+        i += 1
         print("NO2 Level:", sensor.measure_no2())
         print("Ethanol Level:", sensor.measure_ethanol())
         print("VOC Level:", sensor.measure_voc())
         print("CO Level:", sensor.measure_co())
         print("0x04: ", sensor.measure_4())
         print("0x08: ", sensor.measure_8())
-        if input().lower() == 'q':
-            break
-    sensor.close()
+        print("--------------------------------------")
+        time.sleep(2)
