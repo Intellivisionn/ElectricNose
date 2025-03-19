@@ -1,7 +1,6 @@
 import threading
 import time
 import json
-import random
 from datetime import datetime
 
 # Shared list for sensor data and a lock for thread-safe operations
@@ -9,24 +8,21 @@ sensor_data_list = []
 data_lock = threading.Lock()
 stop_event = threading.Event()
 
-def read_sensor_data():
-    
-    return round(random.uniform(0, 100), 2)
-
-def sensor_reader():
-    """Thread function to read sensor data and append to the shared list."""
+def json_reader(json_file="sensor_data.json", interval=2):
     while not stop_event.is_set():
-        sensor_value = read_sensor_data()
-        timestamp = datetime.now().isoformat()
-        sensor_entry = {"timestamp": timestamp, "sensor_value": sensor_value}
-        
-        with data_lock:
-            sensor_data_list.append(sensor_entry)
-        
-        print(f"Received Sensor Data: {sensor_value}")
-        time.sleep(1)  # Simulate a 1-second interval between sensor readings
+        try:
+            with open(json_file, "r") as f:
+                data = json.load(f)
+            # Add a timestamp to track when the reading was taken
+            data['timestamp'] = datetime.now().isoformat()
+            with data_lock:
+                sensor_data_list.append(data)
+            print(f"Read sensor data at {data['timestamp']}")
+        except Exception as e:
+            print(f"Error reading JSON file: {e}")
+        time.sleep(interval)
 
-def json_writer(json_file="sensor_data.json", interval=5):
+def json_writer(json_file="saved_data.json", interval=5):
     """
     Thread function to write the cumulative sensor data to a JSON file.
     Writes to the file every `interval` seconds.
@@ -44,7 +40,7 @@ def json_writer(json_file="sensor_data.json", interval=5):
 
 def main():
     # Create threads for reading sensor data and writing to JSON file
-    reader_thread = threading.Thread(target=sensor_reader)
+    reader_thread = threading.Thread(target=json_reader)
     writer_thread = threading.Thread(target=json_writer)
     
     reader_thread.start()
