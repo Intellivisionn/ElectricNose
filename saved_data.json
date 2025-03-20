@@ -1,0 +1,254 @@
+[
+    {
+        "BME680": {
+            "Temperature": 23.93,
+            "Humidity": 27.07,
+            "Pressure": 1018.87,
+            "GasResistance": 78285
+        },
+        "SGP30": {
+            "CO2": 400,
+            "TVOC": 0
+        },
+        "Grove": {
+            "NO2": 316,
+            "Ethanol": 652,
+            "VOC": 605,
+            "CO": 387,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:40.345524"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.94,
+            "Humidity": 27.06,
+            "Pressure": 1018.88,
+            "GasResistance": 78914
+        },
+        "SGP30": {
+            "CO2": 405,
+            "TVOC": 1
+        },
+        "Grove": {
+            "NO2": 316,
+            "Ethanol": 651,
+            "VOC": 604,
+            "CO": 387,
+            "0x04": 650,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:42.346055"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.95,
+            "Humidity": 27.06,
+            "Pressure": 1018.88,
+            "GasResistance": 79410
+        },
+        "SGP30": {
+            "CO2": 409,
+            "TVOC": 3
+        },
+        "Grove": {
+            "NO2": 315,
+            "Ethanol": 650,
+            "VOC": 604,
+            "CO": 387,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:44.346430"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.95,
+            "Humidity": 27.06,
+            "Pressure": 1018.88,
+            "GasResistance": 79410
+        },
+        "SGP30": {
+            "CO2": 409,
+            "TVOC": 3
+        },
+        "Grove": {
+            "NO2": 315,
+            "Ethanol": 650,
+            "VOC": 604,
+            "CO": 387,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:46.347141"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.96,
+            "Humidity": 27.06,
+            "Pressure": 1018.89,
+            "GasResistance": 79696
+        },
+        "SGP30": {
+            "CO2": 405,
+            "TVOC": 0
+        },
+        "Grove": {
+            "NO2": 313,
+            "Ethanol": 649,
+            "VOC": 602,
+            "CO": 386,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:48.347964"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.97,
+            "Humidity": 27.05,
+            "Pressure": 1018.88,
+            "GasResistance": 80275
+        },
+        "SGP30": {
+            "CO2": 409,
+            "TVOC": 1
+        },
+        "Grove": {
+            "NO2": 312,
+            "Ethanol": 648,
+            "VOC": 602,
+            "CO": 385,
+            "0x04": 650,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:50.348700"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.98,
+            "Humidity": 27.04,
+            "Pressure": 1018.88,
+            "GasResistance": 80494
+        },
+        "SGP30": {
+            "CO2": 400,
+            "TVOC": 0
+        },
+        "Grove": {
+            "NO2": 312,
+            "Ethanol": 646,
+            "VOC": 600,
+            "CO": 385,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:52.349580"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.98,
+            "Humidity": 27.04,
+            "Pressure": 1018.88,
+            "GasResistance": 80494
+        },
+        "SGP30": {
+            "CO2": 400,
+            "TVOC": 0
+        },
+        "Grove": {
+            "NO2": 312,
+            "Ethanol": 646,
+            "VOC": 600,
+            "CO": 385,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:54.350332"
+    },
+    {
+        "BME680": {
+            "Temperature": 23.99,
+            "Humidity": 27.03,
+            "Pressure": 1018.89,
+            "GasResistance": 80715
+        },
+        "SGP30": {
+            "CO2": 410,
+            "TVOC": 0
+        },
+        "Grove": {
+            "NO2": 312,
+            "Ethanol": 645,
+            "VOC": 600,
+            "CO": 385,
+            "0x04": 650,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:56.351130"
+    },
+    {
+        "BME680": {
+            "Temperature": 24.0,
+            "Humidity": 27.02,
+            "Pressure": 1018.89,
+            "GasResistance": 81159
+        },
+        "SGP30": {
+            "CO2": 403,
+            "TVOC": 1
+        },
+        "Grove": {
+            "NO2": 311,
+            "Ethanol": 644,
+            "VOC": 598,
+            "CO": 385,
+            "0x04": 651,
+            "0x08": 683
+        },
+        "timestamp": "2025-03-20T16:05:58.351873"
+    },
+    {
+        "BME680": {
+            "Temperature": 24.01,
+            "Humidity": 27.01,
+            "Pressure": 1018.9,
+            "GasResistance": 81835
+        },
+        "SGP30": {
+            "CO2": 409,
+            "TVOC": 6
+        },
+        "Grove": {
+            "NO2": 310,
+            "Ethanol": 642,
+            "VOC": 597,
+            "CO": 385,
+            "0x04": 652,
+            "0x08": 685
+        },
+        "timestamp": "2025-03-20T16:06:00.352741"
+    },
+    {
+        "BME680": {
+            "Temperature": 24.01,
+            "Humidity": 27.01,
+            "Pressure": 1018.9,
+            "GasResistance": 81835
+        },
+        "SGP30": {
+            "CO2": 409,
+            "TVOC": 6
+        },
+        "Grove": {
+            "NO2": 310,
+            "Ethanol": 642,
+            "VOC": 597,
+            "CO": 385,
+            "0x04": 652,
+            "0x08": 685
+        },
+        "timestamp": "2025-03-20T16:06:02.353615"
+    }
+]

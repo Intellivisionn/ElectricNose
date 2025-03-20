@@ -8,7 +8,7 @@ sensor_data_list = []
 data_lock = threading.Lock()
 stop_event = threading.Event()
 
-def json_reader(json_file="sensor_data.json", interval=2):
+def json_reader(json_file="/home/admin/ElectricNose-SensorReader/sensor_data.json", interval=2):
     while not stop_event.is_set():
         try:
             with open(json_file, "r") as f:
