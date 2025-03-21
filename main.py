@@ -25,6 +25,7 @@ while True:
     sensor_json = json.dumps(data, indent=4)
     print(sensor_json)
 
+    # Edit this in the future to have versatile output as well
     with open("/home/admin/ElectricNose-SensorReader/sensor_data.json", "w") as f:
         f.write(sensor_json)
 
