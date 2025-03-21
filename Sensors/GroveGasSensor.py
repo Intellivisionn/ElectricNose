@@ -1,5 +1,5 @@
 import time
-import smbus2
+from SensorInterface import Sensor
 
 # Default I2C Address for GMXXX sensor
 DEFAULT_I2C_ADDRESS = 0x08
@@ -15,10 +15,20 @@ CHANGE_I2C_ADDR = 0x55
 WARMING_UP = 0xFE
 WARMING_DOWN = 0xFF
 
-class GroveGasSensor:
+class GroveGasSensor(Sensor):
     def __init__(self, i2c_bus, address=DEFAULT_I2C_ADDRESS):
         self.bus = i2c_bus
         self.address = address
+
+    def read_data(self):
+        return {
+            "NO2": self.sensor.measure_no2(),
+            "Ethanol": self.sensor.measure_ethanol(),
+            "VOC": self.sensor.measure_voc(),
+            "CO": self.sensor.measure_co(),
+            "0x04": self.sensor.measure_4(),
+            "0x08": self.sensor.measure_8(),
+        }
     
     def _write_byte(self, command):
         """ Send a single command byte over I2C. """

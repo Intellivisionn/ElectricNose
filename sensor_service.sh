@@ -3,7 +3,7 @@
 # Define paths
 REPO_DIR="/home/admin/ElectricNose-SensorReader"
 VENV_DIR="$REPO_DIR/venv/bin/activate"
-PYTHON_SCRIPT="$REPO_DIR/sensor.py"
+PYTHON_SCRIPT="$REPO_DIR/main.py"
 LOG_FILE="$REPO_DIR/sensor_service.log"
 
 echo "$(date): Starting sensor service..." >> "$LOG_FILE"
