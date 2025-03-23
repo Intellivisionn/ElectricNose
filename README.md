@@ -1,84 +1,103 @@
-### Electric Nose Sensor Service - Documentation
-**Project:** Electric Nose Sensor Reader  
-**Location:** `/home/admin/ElectricNose-SensorReader/`  
-**Service Name:** `sensor.service`  
-**Primary Script:** `sensor.py`  
+# ElectricNose-SensorReader
 
----
+**ElectricNose-SensorReader** is the data acquisition module of the Electric Nose system. It continuously collects readings from multiple I2C and analog sensors and writes the results to a JSON file for downstream consumption and visualization.
 
-## 1. Service Overview
-The **Electric Nose Sensor Service** is a systemd-managed process that:
-1. **Automatically pulls updates** from GitHub (if online).
-2. **Activates a Python virtual environment** for dependency management.
-3. **Installs any missing dependencies**.
-4. **Runs `sensor.py`**, which reads sensor data and logs it as JSON.
+## 🔧 Features
 
-The sensor data is stored in `/home/admin/ElectricNose-SensorReader/sensor_data.json`, where external services can access it.
+- Component-based sensor architecture using `SensorManager`
+- Reads from BME680, SGP30, and Grove gas sensors
+- Outputs real-time sensor data to `sensor_data.json`
+- Runs as a systemd service on boot
+- Isolated environment via Python virtual environment (`venv/`)
+- Auto-update support with logging
 
----
+## 📁 Project Structure
 
-## 2. How to Use the Service
-### Start the Service
-```bash
-sudo service sensor start
+```
+ElectricNose-SensorReader/
+├── Sensors/               # Modular sensor classes (BME680, SGP30, Grove)
+├── venv/                  # Python virtual environment (excluded from Git)
+├── main.py                # Main script for reading and saving data
+├── requirements.txt       # Python dependencies
+├── sensor_service.sh      # Optional script for managing service and venv
+├── sensor.service         # (To be added) systemd unit file
+└── README.md              # Project documentation
 ```
 
-### Stop the Service
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
 ```bash
-sudo service sensor stop
+git clone https://github.com/Intellivisionn/ElectricNose-SensorReader.git
+cd ElectricNose-SensorReader
 ```
 
-### Restart the Service
+### 2. Set Up Virtual Environment
+
 ```bash
-sudo service sensor restart
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### Enable on Boot
+### 3. Run the Reader (Manually)
+
 ```bash
+python3 main.py
+```
+
+This will start reading from sensors and write output to:
+
+```
+/home/admin/ElectricNose-SensorReader/sensor_data.json
+```
+
+## ⚙️ Running as a Service
+
+### Copy and Enable the systemd Service
+
+```bash
+sudo cp sensor.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl enable sensor.service
+sudo systemctl start sensor.service
 ```
 
-### Disable from Boot
+### Service Commands
+
 ```bash
-sudo systemctl disable sensor.service
+sudo systemctl status sensor.service     # Check status
+sudo systemctl restart sensor.service    # Restart the service
+sudo systemctl stop sensor.service       # Stop the service
 ```
 
----
+## 🧪 Logs & Output
 
-## 3. Log Management
-The service logs its activity to:
-- **Service Logs:** `/home/admin/ElectricNose-SensorReader/sensor_service.log`
-- **Sensor Data JSON:** `/home/admin/ElectricNose-SensorReader/sensor_data.json`
+- **Sensor Data:**  
+  `/home/admin/ElectricNose-SensorReader/sensor_data.json`
 
-### Viewing Logs
-```bash
-cat /home/admin/ElectricNose-SensorReader/sensor_service.log
-```
+- **Service Logs:**  
+  `/home/admin/ElectricNose-SensorReader/sensor_service.log`
 
-Or, to follow the logs in real-time:
+To monitor logs in real-time:
+
 ```bash
 tail -f /home/admin/ElectricNose-SensorReader/sensor_service.log
 ```
 
-View the latest 100 lines:
+## 🔁 Updating the Service
+
 ```bash
-tail -n 100 /home/admin/ElectricNose-SensorReader/sensor_service.log
+cd /home/admin/ElectricNose-SensorReader
+git pull
+source venv/bin/activate
+pip install -r requirements.txt
+sudo systemctl restart sensor.service
 ```
 
-### Viewing System Logs
-```bash
-sudo journalctl -u sensor.service -n 50  # Last 50 logs
-sudo journalctl -u sensor.service -f  # Follow logs in real-time
-```
+## 🧠 Sensor Output Example
 
----
-
-## 4. Sensor Data Storage
-The script logs sensor readings in JSON format to:
-```
-/home/admin/ElectricNose-SensorReader/sensor_data.json
-```
-Example entry:
 ```json
 [
     {
@@ -93,88 +112,35 @@ Example entry:
             "TVOC": 10
         },
         "Grove": {
-           ....
+            "Gas": 350
         }
     }
 ]
 ```
 
----
+## 🛠️ Troubleshooting
 
-## 5. Updating the Service
-To manually update:
-```bash
-cd /home/admin/ElectricNose-SensorReader
-git pull
-```
+- **Service not running?**  
+  ```bash
+  sudo systemctl status sensor.service
+  ```
 
-### Reinstall Dependencies
-```bash
-source venv/bin/activate
-pip install -r requirements.txt
-```
+- **Dependency issues?**  
+  Reinstall with:
+  ```bash
+  source venv/bin/activate
+  pip install -r requirements.txt
+  ```
 
-### Restart the Service
-```bash
-sudo service sensor restart
-```
+- **Git pull fails?**  
+  If offline, pull manually when back online and restart the service.
 
 ---
 
-## 6. Troubleshooting
-### Service Not Running?
-Check if it’s active:
-```bash
-sudo systemctl status sensor.service
-```
+## 📜 License
 
-Start it if inactive:
-```bash
-sudo systemctl start sensor.service
-```
-
-### Logs Show "ModuleNotFoundError"?
-Reinstall dependencies:
-```bash
-source /home/admin/ElectricNose-SensorReader/venv/bin/activate
-pip install -r /home/admin/ElectricNose-SensorReader/requirements.txt
-```
-Then restart:
-```bash
-sudo systemctl restart sensor.service
-```
-
-### GitHub Pull Fails Due to No Network?
-If offline, the service **skips `git pull`**. If you reconnect, restart the service:
-```bash
-sudo systemctl restart sensor.service
-```
-
-### Checking for Issues
-1. View system logs:
-   ```bash
-   sudo journalctl -u sensor.service -n 50
-   ```
-2. View detailed service logs:
-   ```bash
-   cat /home/admin/ElectricNose-SensorReader/sensor_service.log
-   ```
+This project is part of the Electric Nose system and is released under the MIT License.
 
 ---
 
-## 7. System Architecture
-- **Sensor Service (`sensor.service`)**
-  - Runs the script on boot.
-  - Manages logging and updates.
-  - Uses a virtual environment to isolate dependencies.
-
-- **Sensor Script (`sensor.py`)**
-  - Reads data from BME680, SGP30, and Grove sensors.
-  - Formats the data as JSON.
-  - Stores JSON data in `/home/admin/ElectricNose-SensorReader/sensor_data.json`.
-
-- **Virtual Environment (`venv/`)**
-  - Isolates Python dependencies.
-  - Prevents conflicts with system-wide Python packages.
-
----
+**Developed for the Electric Nose project — Spring Semester 2025**
