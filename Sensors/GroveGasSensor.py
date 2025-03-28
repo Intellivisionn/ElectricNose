@@ -22,12 +22,12 @@ class GroveGasSensor(Sensor):
 
     def read_data(self):
         return {
-            "NO2": self.sensor.measure_no2(),
-            "Ethanol": self.sensor.measure_ethanol(),
-            "VOC": self.sensor.measure_voc(),
-            "CO": self.sensor.measure_co(),
-            "0x04": self.sensor.measure_4(),
-            "0x08": self.sensor.measure_8(),
+            "NO2": self.measure_no2(),
+            "Ethanol": self.measure_ethanol(),
+            "VOC": self.measure_voc(),
+            "CO": self.measure_co(),
+            "0x04": self.measure_4(),
+            "0x08": self.measure_8(),
         }
     
     def _write_byte(self, command):
