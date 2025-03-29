@@ -16,11 +16,10 @@
 ```
 ElectricNose-SensorReader/
 ├── Sensors/               # Modular sensor classes (BME680, SGP30, Grove)
-├── venv/                  # Python virtual environment (excluded from Git)
 ├── main.py                # Main script for reading and saving data
 ├── requirements.txt       # Python dependencies
 ├── sensor_service.sh      # Optional script for managing service and venv
-├── sensor.service         # (To be added) systemd unit file
+├── sensor.service         # systemd unit file
 └── README.md              # Project documentation
 ```
 
