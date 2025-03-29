@@ -1,0 +1,44 @@
+# Byte-compiled / compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+bin/
+lib/
+lib64/
+pyvenv.cfg
+share/
+include/
+
+# Logs and local environment files
+*.log
+*.out
+*.err
+*.pid
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Python packages
+*.egg-info/
+.eggs/
+*.whl
+
+# Log files
+sensor_service.log
+
+# Ignore sensor data files
+sensor_data.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+
+# VENV DIRECTORY
+/venv
