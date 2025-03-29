@@ -1,0 +1,17 @@
+[Unit]
+Description=Electric Nose Sensor Display
+After=multi-user.target
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+ExecStart=/usr/bin/python3 /home/admin/ElectricNose-DisplayController/hdmi_pygame.py
+Restart=on-failure
+RestartSec=10
+User=admin
+WorkingDirectory=/home/admin/ElectricNose-DisplayController
+StandardOutput=append:/var/log/display.log
+StandardError=append:/var/log/display.log
+
+[Install]
+WantedBy=multi-user.target

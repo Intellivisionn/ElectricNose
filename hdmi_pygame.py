@@ -2,10 +2,13 @@ import pygame
 import json
 import os
 import time
+import socket
+import threading
 import glob
 
-# Path to sensor data JSON file
-JSON_FILE = "/home/admin/ElectricNose-SensorReader/sensor_data.json"
+# Constants
+SOCKET_PORT = 9999
+OVERRIDE_TIMEOUT = 10  # seconds before falling back
 
 # Colors
 WHITE = (255, 255, 255)
@@ -13,121 +16,146 @@ BLACK = (0, 0, 0)
 BLUE = (30, 144, 255)
 GREEN = (34, 139, 34)
 RED = (220, 20, 60)
+YELLOW = (255, 215, 0)
 
-# Function to check HDMI connection
-def is_hdmi_connected():
-    """Check if HDMI is connected using DRM sysfs."""
-    hdmi_ports = glob.glob("/sys/class/drm/card*-HDMI-*/status")
-    for port in hdmi_ports:
-        with open(port, "r") as f:
-            status = f.read().strip()
-            if status == "connected":
-                return True
-    return False
 
-# Function to load sensor data
-def load_sensor_data():
-    if os.path.exists(JSON_FILE):
-        try:
-            with open(JSON_FILE, "r") as file:
-                return json.load(file)
-        except json.JSONDecodeError:
-            return None
-    return None
+class HDMIStatusChecker:
+    @staticmethod
+    def is_connected():
+        hdmi_ports = glob.glob("/sys/class/drm/card*-HDMI-*/status")
+        for port in hdmi_ports:
+            with open(port, "r") as f:
+                status = f.read().strip()
+                if status == "connected":
+                    return True
+        return False
 
-# Function to render centered text
-def render_text_centered(text, font, color, y, screen):
-    text_surface = font.render(text, True, color)
-    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, y))
-    screen.blit(text_surface, text_rect)
 
-# Function to display sensor data
-def draw_sensor_data(screen, sensor_data, fonts):
-    screen.fill(BLACK)  # Clear screen
+class DisplayManager:
+    def __init__(self):
+        self.screen = None
+        self.fonts = {}
+        self.override_data = None
+        self.override_last_update = 0
+        self.lock = threading.Lock()
+        self.socket_thread = threading.Thread(target=self._start_socket_server, daemon=True)
 
-    if not sensor_data:
-        render_text_centered("Error: No sensor data", fonts["title"], RED, screen.get_height() // 3, screen)
-        pygame.display.flip()
-        return
+    def start(self):
+        print("Initializing Pygame...")
+        os.system("chvt 7")
+        os.system("fbset -depth 32 && fbset -depth 16")
 
-    if isinstance(sensor_data, list):
-        sensor_data = sensor_data[0]  # Extract first object if it's a list
-    elif not isinstance(sensor_data, dict):
-        render_text_centered("Invalid JSON format!", fonts["title"], RED, screen.get_height() // 3, screen)
-        pygame.display.flip()
-        return
+        pygame.init()
+        pygame.mouse.set_visible(False)
+        self.screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
 
-    # Title (Centered at top)
-    render_text_centered("Electric Nose Sensor Data", fonts["title"], BLUE, int(screen.get_height() * 0.08), screen)
+        screen_height = self.screen.get_height()
 
-    y_offset = int(screen.get_height() * 0.18)  # Start drawing sensor data
+        self.fonts = {
+            "title": pygame.font.Font(None, int(screen_height * 0.06)),
+            "data": pygame.font.Font(None, int(screen_height * 0.045)),
+            "small": pygame.font.Font(None, int(screen_height * 0.035)),
+        }
 
-    for sensor, readings in sensor_data.items():
-        render_text_centered(sensor, fonts["data"], GREEN, y_offset, screen)
-        y_offset += int(screen.get_height() * 0.05)  # Spacing between sensors
+        self.socket_thread.start()
 
-        for key, value in readings.items():
-            text = f"{key}: {value}"
-            render_text_centered(text, fonts["small"], WHITE, y_offset, screen)
-            y_offset += int(screen.get_height() * 0.04)  # Adjusted dynamically
-
-        y_offset += int(screen.get_height() * 0.02)  # Extra spacing between sensors
-
-    pygame.display.flip()
-
-# Function to initialize Pygame
-def start_pygame():
-    print("Initializing Pygame...")
-    os.system("chvt 7")  # Ensure framebuffer console is active
-    os.system("fbset -depth 32 && fbset -depth 16")  # Reset framebuffer depth
-
-    pygame.init()
-    pygame.mouse.set_visible(False)
-    screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
-
-    # Dynamically scale font sizes
-    fonts = {
-        "title": pygame.font.Font(None, int(screen.get_height() * 0.06)),  # 6% of screen height
-        "data": pygame.font.Font(None, int(screen.get_height() * 0.045)),  # 4.5% of screen height
-        "small": pygame.font.Font(None, int(screen.get_height() * 0.035)), # 3.5% of screen height
-    }
-
-    return screen, fonts
-
-# Main loop
-running = True
-display_active = False
-screen = None
-fonts = None
-
-while running:
-    hdmi_connected = is_hdmi_connected()
-
-    if hdmi_connected and not display_active:
-        print("HDMI connected, starting Pygame...")
-        screen, fonts = start_pygame()
-        display_active = True
-
-    elif not hdmi_connected and display_active:
-        print("HDMI disconnected, stopping Pygame...")
+    def stop(self):
         pygame.quit()
-        screen = None
-        fonts = None
-        display_active = False
+        self.screen = None
+        self.fonts = {}
 
-    if display_active:
-        sensor_data = load_sensor_data()
-        draw_sensor_data(screen, sensor_data, fonts)
+    def _start_socket_server(self):
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind(("localhost", SOCKET_PORT))
+        server.listen(1)
+        print(f"Listening for display data on port {SOCKET_PORT}...")
 
-        # Handle events only when display is active
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                running = False
-    else:
-        print("No display detected. Waiting for HDMI...")
-        time.sleep(5)  # Wait 5 seconds before checking again to avoid high CPU usage
-        continue  # Skip event handling when display is off
+        while True:
+            client, _ = server.accept()
+            data = client.recv(4096)
+            try:
+                incoming = json.loads(data.decode())
+                with self.lock:
+                    self.override_data = incoming
+                    self.override_last_update = time.time()
+                    self._draw_custom_display(self.override_data)
+                    print("Display updated.")
+            except Exception as e:
+                print(f"Invalid data received: {e}")
+            finally:
+                client.close()
 
-    time.sleep(5)  # Check HDMI status every 5 seconds
+    def _render_text_centered(self, text, font, color, y):
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, y))
+        self.screen.blit(text_surface, text_rect)
 
-pygame.quit()
+    def _draw_custom_display(self, payload):
+        self.screen.fill(BLACK)
+        title = payload.get("title", "Invalid Payload")
+        self._render_text_centered(title, self.fonts["title"], YELLOW, int(self.screen.get_height() * 0.1))
+
+        y_offset = int(self.screen.get_height() * 0.25)
+        lines = payload.get("lines", [])
+
+        for line in lines:
+            text = line.get("text", "")
+            color = tuple(line.get("color", WHITE))
+            self._render_text_centered(text, self.fonts["data"], color, y_offset)
+            y_offset += int(self.screen.get_height() * 0.05)
+
+        pygame.display.flip()
+
+    def _draw_fallback_display(self):
+        self.screen.fill(BLACK)
+        self._render_text_centered("Display Controller Not Initialised", self.fonts["title"], YELLOW, self.screen.get_height() // 2)
+        pygame.display.flip()
+
+    def draw(self):
+        with self.lock:
+            if self.override_data and time.time() - self.override_last_update <= OVERRIDE_TIMEOUT:
+                self._draw_custom_display(self.override_data)
+            else:
+                self._draw_fallback_display()
+
+
+class DisplayApp:
+    def __init__(self):
+        self.running = True
+        self.display_active = False
+        self.display = DisplayManager()
+
+    def run(self):
+        while self.running:
+            hdmi_connected = HDMIStatusChecker.is_connected()
+
+            if hdmi_connected and not self.display_active:
+                print("HDMI connected, starting display...")
+                self.display.start()
+                self.display_active = True
+
+            elif not hdmi_connected and self.display_active:
+                print("HDMI disconnected, stopping display...")
+                self.display.stop()
+                self.display_active = False
+
+            if self.display_active:
+                # Only draw fallback periodically; socket triggers redraws when active
+                self.display.draw()
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                        self.running = False
+            else:
+                print("No display detected. Waiting for HDMI...")
+                time.sleep(5)
+                continue
+
+            time.sleep(0.2)
+
+        pygame.quit()
+
+
+if __name__ == "__main__":
+    app = DisplayApp()
+    app.run()
