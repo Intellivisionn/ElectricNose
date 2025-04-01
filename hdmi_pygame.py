@@ -47,7 +47,7 @@ class DisplayManager:
 
         pygame.init()
         pygame.mouse.set_visible(False)
-        self.screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((800, 480), pygame.FULLSCREEN)
 
         screen_height = self.screen.get_height()
 
