@@ -38,8 +38,9 @@ class GroveGasSensor(Sensor):
         time.sleep(0.01)
     
     def _read_4_bytes(self, command):
-        if not self.is_preheated:
-            self.preheat()
+        #if not self.is_preheated:
+        #    self.preheat()
+        self._write_byte(WARMING_UP)
         self._write_byte(command)
         time.sleep(0.05)  # Allow time for sensor to respond
         data = self.bus.read_i2c_block_data(self.address, command, 2) #gpt generated 4, but when you run it it is the same actually
