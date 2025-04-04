@@ -19,6 +19,7 @@ class GroveGasSensor(Sensor):
     def __init__(self, i2c_bus, address=DEFAULT_I2C_ADDRESS):
         self.bus = i2c_bus
         self.address = address
+        self.is_preheated = False
 
     def read_data(self):
         return {
@@ -37,7 +38,8 @@ class GroveGasSensor(Sensor):
         time.sleep(0.01)
     
     def _read_4_bytes(self, command):
-        """ Read 4 bytes of data from the sensor after sending a command. """
+        if not self.is_preheated:
+            self.preheat()
         self._write_byte(command)
         time.sleep(0.05)  # Allow time for sensor to respond
         data = self.bus.read_i2c_block_data(self.address, command, 2) #gpt generated 4, but when you run it it is the same actually
@@ -45,6 +47,18 @@ class GroveGasSensor(Sensor):
         #print(f"Read {value} from command {hex(command)}")
         return value
     
+    def preheat(self):
+        """ Warm up the sensor (equivalent to C++ preheated). """
+        self._write_byte(WARMING_UP)
+        self.is_preheated = True
+        time.sleep(0.1)
+
+    def stop_preheat(self):
+        """ Stop sensor warm-up (equivalent to C++ unPreheated). """
+        self._write_byte(WARMING_DOWN)
+        self.is_preheated = False
+        time.sleep(0.1)
+
     def measure_no2(self):
         """ Measure NO2 gas concentration. """
         return self._read_4_bytes(GM_102B)
