@@ -10,7 +10,13 @@ class SGP30Sensor(Sensor):
 
     def read_data(self):
         eco2, tvoc = self.sensor.iaq_measure()
+	h2, ethanol = self.sensor.raw_measure()
+	eco2_base, tvoc_base = self.sensor.get_iaq_baseline()
         return {
             "CO2": eco2,
-            "TVOC": tvoc
+            "TVOC": tvoc,
+	    "BASELINE CO2": eco2_base,
+	    "BASELINE TVOC": tvoc_base,
+	    "Raw H2": h2,
+	    "Raw Ethanol": ethanol
         }

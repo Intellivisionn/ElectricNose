@@ -27,7 +27,7 @@ class ElectricNoseSensorReader:
         while True:
             data = self.manager.read_all()
             sensor_json = json.dumps(data, indent=4)
-            print(sensor_json)
+#            print(sensor_json)
 
             with open(self.output_path, "w") as f:
                 f.write(sensor_json)
