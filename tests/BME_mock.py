@@ -1,7 +1,7 @@
 from Sensors.SensorInterface import Sensor
 
 class FakeBME680Sensor(Sensor):
-    def __init__(self):
+    def __init__(self, i2c=None, address=None):
         self.temperature = 25.5
         self.humidity = 50.2
         self.pressure = 1013.25
