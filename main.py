@@ -8,6 +8,7 @@ from Sensors.BME680Sensor import BME680Sensor
 from Sensors.SGP30Sensor import SGP30Sensor
 from Sensors.GroveGasSensor import GroveGasSensor
 from Sensors.SensorManager import SensorManager
+from aspects.LoggingAspect import LoggingAspect
 
 
 class ElectricNoseSensorReader:
@@ -23,6 +24,7 @@ class ElectricNoseSensorReader:
         self.output_path = output_path
         self.sleep_interval = sleep_interval
 
+    @LoggingAspect.log_method
     def read_and_save(self):
         while True:
             data = self.manager.read_all()

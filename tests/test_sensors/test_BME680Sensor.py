@@ -1,4 +1,4 @@
-from .BME_mock import FakeBME680Sensor  # Your actual sensor class
+from .BME_mock import FakeBME680Sensor
 from Sensors.BME680Sensor import BME680Sensor
 
 BME680Address = 0x76

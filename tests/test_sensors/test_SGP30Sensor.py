@@ -1,4 +1,4 @@
-from .SGP_mock import FakeSGP30Sensor  # Your actual sensor class
+from .SGP_mock import FakeSGP30Sensor
 from Sensors.SGP30Sensor import SGP30Sensor
 
 BME680Address = 0x76

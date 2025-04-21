@@ -15,7 +15,7 @@ class TestGroveGasSensor:
         mocker.patch('Sensors.GroveGasSensor.WARMING_UP', 0xFE)
         mocker.patch('Sensors.GroveGasSensor.GM_102B', 0x01)
         mock_bus = mocker.Mock()
-        mock_bus.read_i2c_block_data.return_value = [0x34, 0x12]  # little endian → 0x1234 → 4660
+        mock_bus.read_i2c_block_data.return_value = [0x34, 0x12]  #  0x1234 → 4660
 
         sensor = GroveGasSensor(mock_bus)
         mocker.patch.object(sensor, '_write_byte')
