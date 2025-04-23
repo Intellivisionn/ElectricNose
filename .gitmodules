@@ -1,0 +1,3 @@
+[submodule "Raspberry-Pi-Installer-Script"]
+	path = Raspberry-Pi-Installer-Script
+	url = https://github.com/adafruit/Raspberry-Pi-Installer-Scripts
