@@ -1,3 +1,6 @@
 [submodule "Raspberry-Pi-Installer-Scripts"]
 	path = DisplayController/Raspberry-Pi-Installer-Scripts
 	url = https://github.com/adafruit/Raspberry-Pi-Installer-Scripts
+[submodule "DisplayController/Raspberry-Pi-Installer-Scripts"]
+	path = DisplayController/Raspberry-Pi-Installer-Scripts
+	url = https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git
