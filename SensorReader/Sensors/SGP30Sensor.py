@@ -1,4 +1,4 @@
-from Sensors.SensorInterface import Sensor 
+from SensorReader.Sensors.SensorInterface import Sensor 
 import adafruit_sgp30
 
 class SGP30Sensor(Sensor):

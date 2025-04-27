@@ -6,7 +6,7 @@ import sys
 from unittest.mock import MagicMock
 sys.modules['smbus2'] = MagicMock()
 
-from main import ElectricNoseSensorReader
+from SensorReader.main import ElectricNoseSensorReader
 
 
 class TestLoggingAspect:

@@ -4,11 +4,11 @@ import board
 from smbus2 import SMBus
 
 # Import sensor classes
-from Sensors.BME680Sensor import BME680Sensor
-from Sensors.SGP30Sensor import SGP30Sensor
-from Sensors.GroveGasSensor import GroveGasSensor
-from Sensors.SensorManager import SensorManager
-from aspects.LoggingAspect import LoggingAspect
+from SensorReader.Sensors.BME680Sensor import BME680Sensor
+from SensorReader.Sensors.SGP30Sensor import SGP30Sensor
+from SensorReader.Sensors.GroveGasSensor import GroveGasSensor
+from SensorReader.Sensors.SensorManager import SensorManager
+from SensorReader.aspects.LoggingAspect import LoggingAspect
 
 
 class ElectricNoseSensorReader:
