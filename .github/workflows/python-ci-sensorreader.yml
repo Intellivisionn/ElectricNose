@@ -1,8 +1,12 @@
-name: Python DataReader CI
+name: Python SensorReader CI
 
 on:
   push:
+    paths:
+      - 'SensorReader/**'
   pull_request:
+    paths:
+      - 'SensorReader/**'
 
 jobs:
   run-tests:
@@ -25,9 +29,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        working-directory: SensorReader
         run: |
           python -m pip install --upgrade pip
           pip install pytest
 
       - name: Run tests
-        run: pytest
+        working-directory: SensorReader
+        run: pytest tests/
