@@ -38,6 +38,6 @@ class ElectricNoseSensorReader:
 
 
 if __name__ == "__main__":
-    output_path = "/home/admin/ElectricNose-SensorReader/sensor_data.json"
+    output_path = "/home/admin/ElectricNose/SensorReader/sensor_data.json"
     reader = ElectricNoseSensorReader(output_path)
     reader.read_and_save()
