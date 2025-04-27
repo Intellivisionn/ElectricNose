@@ -1,0 +1,15 @@
+[Unit]
+Description=Sensor Reader Service
+After=network.target
+
+[Service]
+User=admin
+WorkingDirectory=/home/admin/ElectricNose-SensorReader
+ExecStart=/bin/bash /home/admin/ElectricNose-SensorReader/sensor_service.sh
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/sensor_service.log
+StandardError=append:/var/log/sensor_service.log
+
+[Install]
+WantedBy=multi-user.target
