@@ -37,4 +37,5 @@ jobs:
 
       - name: Run tests
         working-directory: SensorReader
-        run: pytest tests/
+        run: |
+          PYTHONPATH=.. pytest tests/
