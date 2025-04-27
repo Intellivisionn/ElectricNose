@@ -1,4 +1,4 @@
-from Sensors.SensorInterface import Sensor
+from SensorReader.Sensors.SensorInterface import Sensor
 
 class FakeBME680Sensor(Sensor):
     def __init__(self, i2c=None, address=None):

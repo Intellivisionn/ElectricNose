@@ -1,5 +1,5 @@
 from .FakeSensor import FakeSensor
-from Sensors.SensorManager import SensorManager
+from SensorReader.Sensors.SensorManager import SensorManager
 
 # mock hardware to use ElectricNoseSensorReader
 import sys

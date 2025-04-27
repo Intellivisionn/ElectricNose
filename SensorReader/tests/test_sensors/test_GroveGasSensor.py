@@ -1,5 +1,5 @@
 import pytest
-from Sensors.GroveGasSensor import GroveGasSensor
+from SensorReader.Sensors.GroveGasSensor import GroveGasSensor
 
 class TestGroveGasSensor:
     def test_write_byte(self, mocker):

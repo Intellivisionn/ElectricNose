@@ -1,4 +1,4 @@
-from Sensors.SensorInterface import Sensor
+from SensorReader.Sensors.SensorInterface import Sensor
 
 class FakeSensor(Sensor):
     def read_data(self):
