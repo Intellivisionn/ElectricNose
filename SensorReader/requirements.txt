@@ -17,3 +17,4 @@ RPi.GPIO==0.7.1
 smbus2==0.5.0
 sysv-ipc==1.1.0
 typing_extensions==4.12.2
+pytest-mock
