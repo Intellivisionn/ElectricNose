@@ -96,7 +96,7 @@ class TestLoggingAspect:
 
 
     def test_logging_aspect_electronic_nose_sensor_reader_read_and_save(self, capfd, mocker):
-        mocker.patch("main.ElectricNoseSensorReader.__init__", return_value=None)
+        mocker.patch("SensorReader.main.ElectricNoseSensorReader.__init__", return_value=None)
         electronic_nose_sensor_reader = ElectricNoseSensorReader("mock_output.json", sleep_interval=0)
 
         electronic_nose_sensor_reader.manager = mocker.Mock()
