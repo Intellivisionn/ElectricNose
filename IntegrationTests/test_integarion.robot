@@ -34,5 +34,9 @@ Integration Test With Fake Sensors
     ${content}=    Get File    ${matches[0]}
     Should Contain    ${content}    Temperature
 
+    ${files}=    List Files In Directory    ${SAVED_DATA_DIR}   absolute=True
+    FOR    ${file}    IN    @{files}
+        Remove File    ${file}
+    END
     Remove Directory    ${SAVED_DATA_DIR}
     Remove File    ${SENSOR_JSON}
