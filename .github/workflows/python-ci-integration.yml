@@ -27,9 +27,3 @@ jobs:
       - name: Run Robot Framework tests
         run: |
           robot --outputdir reports IntegrationTests/
-
-      - name: Upload Robot Framework report
-        uses: actions/upload-artifact@v3
-        with:
-          name: robot-report
-          path: reports/
