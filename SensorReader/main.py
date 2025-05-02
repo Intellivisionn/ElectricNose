@@ -2,6 +2,7 @@ import time
 import json
 import board
 from smbus2 import SMBus
+from pathlib import Path
 
 # Import sensor classes
 from SensorReader.Sensors.BME680Sensor import BME680Sensor
@@ -41,6 +42,6 @@ class ElectricNoseSensorReader:
 
 
 if __name__ == "__main__":
-    output_path = "/home/admin/ElectricNose/SensorReader/sensor_data.json"
+    output_path = Path.cwd() / "sensor_data.json"
     reader = ElectricNoseSensorReader(output_path)
     reader.read_and_save()
