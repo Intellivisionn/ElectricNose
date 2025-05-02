@@ -28,7 +28,7 @@ Integration Test With Fake Sensors
     ...    stderr=IntegrationTests/reader.err
     Sleep    5s
 
-    Start Process    sh    -c    echo test_scent \| ${PYTHON} -m ${DATA_READER}
+    Start Process    ${PYTHON}    -m    ${DATA_READER}    cwd=${PROJECT_ROOT}    stdin=test_scent
     ...    cwd=${PROJECT_ROOT}
     Sleep    10s
 
