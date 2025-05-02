@@ -5,7 +5,7 @@ if __name__ == "__main__":
     sensor_json_file = "sensor_data.json"
     
     # Create an instance of the SensorDataCollector
-    collector = SensorDataCollector(sensor_json_file, read_interval=2, write_interval=5)
+    collector = SensorDataCollector(sensor_json_file, read_interval=2, write_interval=5, output_dir="/home/admin/ElectricNose/IntegrationTests/savedData")
     
     # Start collecting and writing data
     collector.start()
