@@ -27,14 +27,17 @@ class ElectricNoseSensorReader:
     @LoggingAspect.log_method
     def read_and_save(self):
         while True:
-            data = self.manager.read_all()
-            sensor_json = json.dumps(data, indent=4)
-#            print(sensor_json)
-
-            with open(self.output_path, "w") as f:
-                f.write(sensor_json)
+            self.read_and_save_once()
 
             time.sleep(self.sleep_interval)
+
+    def read_and_save_once(self):
+        data = self.manager.read_all()
+        sensor_json = json.dumps(data, indent=4)
+        #            print(sensor_json)
+
+        with open(self.output_path, "w") as f:
+            f.write(sensor_json)
 
 
 if __name__ == "__main__":
