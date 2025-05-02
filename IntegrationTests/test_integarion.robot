@@ -25,10 +25,11 @@ Integration Test With Fake Sensors
 
     ${search_path}=    Normalize Path    ${PROJECT_ROOT}/IntegrationTests/savedData/test_scent_*.json
 
-    :FOR    ${i}    IN RANGE    5
-    \\    ${matches}=    Glob    ${search_path}
-    \\    Exit For Loop If    ${matches}
-    \\    Sleep    1s
+    FOR    ${i}    IN RANGE    5
+        ${matches}=    Glob    ${search_path}
+        Exit For Loop If    ${matches}
+        Sleep    1s
+    END
 
     Log    Matching path: ${search_path}
     Log    Found files: ${matches}
