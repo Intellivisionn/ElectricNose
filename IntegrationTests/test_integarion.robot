@@ -6,8 +6,8 @@ Library    glob
 *** Variables ***
 ${FAKE_PATH}      ${CURDIR}/mocks
 ${PYTHON}         python
-${DATA_READER}    DataReader/source/data_reader.py
-${SENSOR_READER}  SensorReader/main.py
+${DATA_READER}    IntegrationTests/mocks/DataReaderFake.py
+${SENSOR_READER}  IntegrationTests/mocks/SensorReaderFake.py
 
 *** Test Cases ***
 Integration Test With Fake Sensors
