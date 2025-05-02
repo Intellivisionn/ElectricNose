@@ -28,18 +28,3 @@ jobs:
         run: |
           mkdir -p reports
           robot --outputdir reports IntegrationTests/
-
-      - name: Upload Robot Framework report
-        uses: actions/upload-artifact@v3
-        with:
-          name: robot-reports
-          path: reports/
-
-      - name: Upload debug logs (if any)
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: robot-debug-logs
-          path: |
-            IntegrationTests/reader.log
-            IntegrationTests/reader.err
