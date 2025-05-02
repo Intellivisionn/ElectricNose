@@ -30,17 +30,16 @@ jobs:
           mkdir -p reports
           robot --outputdir reports IntegrationTests/
 
-      - name: Upload Robot Framework reports
-        uses: "actions/upload-artifact@v3"
-        with:
-          name: robot-reports
-          path: reports/
+      - name: Print debug logs (stdout & stderr)
+        run: |
+          echo "===== SensorReader STDOUT ====="
+          cat IntegrationTests/reader.log || echo "No reader.log found"
+          echo "===== SensorReader STDERR ====="
+          cat IntegrationTests/reader.err || echo "No reader.err found"
+          echo "===== Test Output Summary ====="
+          cat reports/output.xml || echo "No Robot output.xml found"
+          cat reports/log.html || echo "No Robot log.html found"
 
-      - name: Upload debug logs
-        if: always()
-        uses: "actions/upload-artifact@v3"
-        with:
-          name: robot-debug-logs
-          path: |
-            IntegrationTests/reader.log
-            IntegrationTests/reader.err
+      - name: Fail build if test failed
+        run: |
+          grep -q "status=\"FAIL\"" reports/output.xml && exit 1 || echo "Tests passed"
