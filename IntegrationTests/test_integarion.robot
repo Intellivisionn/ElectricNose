@@ -23,7 +23,7 @@ Integration Test With Fake Sensors
 
     Terminate All Processes
 
-    ${matches}=    Glob    ${PROJECT_ROOT}/savedData/test_scent_*.json
+    ${matches}=    Glob    ${PROJECT_ROOT}/IntegrationTests/savedData/test_scent_*.json
     Length Should Be    ${matches}    1
     File Should Exist    ${matches[0]}
     ${content}=    Get File    ${matches[0]}
