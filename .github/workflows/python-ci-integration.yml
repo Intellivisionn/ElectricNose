@@ -26,4 +26,13 @@ jobs:
 
       - name: Run Robot Framework tests
         run: |
-          robot IntegrationTests/  # Adjust if needed
+          robot IntegrationTests/
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-output
+          path: |
+            IntegrationTests/savedData/
+            IntegrationTests/mocks/sensor_data.json
