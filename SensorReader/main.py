@@ -42,6 +42,6 @@ class ElectricNoseSensorReader(BaseSensorReader):
         super().__init__(sensors, output_path, sleep_interval)
 
 if __name__ == "__main__":
-    output_path = Path.cwd() / "sensor_data.json"
+    output_path = Path(__file__).resolve().parent / "sensor_data.json"
     reader = ElectricNoseSensorReader(output_path)
     reader.read_and_save()
