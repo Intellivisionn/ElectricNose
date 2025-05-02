@@ -34,5 +34,5 @@ Integration Test With Fake Sensors
     ${content}=    Get File    ${matches[0]}
     Should Contain    ${content}    Temperature
 
-    Remove Files In Directory    ${SAVED_DATA_DIR}    pattern=test_scent_*.json
+    Remove Files    ${SAVED_DATA_DIR}
     Remove File    ${SENSOR_JSON}
