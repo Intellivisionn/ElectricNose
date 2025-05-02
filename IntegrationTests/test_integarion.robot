@@ -29,7 +29,7 @@ Integration Test With Fake Sensors
 
     # Look for the generated data file
     ${matches}=    Glob    savedData/test_scent_*.json
-    Length Should Be    ${matches}    1
+    Length Should Be    ${matches}    5
 
     # Verify that the file exists and contains expected sensor key
     File Should Exist    ${matches[0]}
