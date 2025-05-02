@@ -4,7 +4,7 @@ Library    Process
 Library    glob
 
 *** Variables ***
-${PROJECT_ROOT}    Normalize Path    ${CURDIR}/..
+${PROJECT_ROOT}    ${CURDIR}/..
 ${PYTHON}          python
 ${DATA_READER}     IntegrationTests.mocks.DataReaderFake
 ${SENSOR_READER}   IntegrationTests.mocks.SensorReaderFake
