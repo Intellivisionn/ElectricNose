@@ -27,6 +27,8 @@ Integration Test With Fake Sensors
 
     ${search_path}=    Normalize Path    ${PROJECT_ROOT}/IntegrationTests/savedData/test_scent_*.json
 
+    ${matches}=    Glob    ${search_path}
+
     Length Should Be    ${matches}    1
     File Should Exist    ${matches[0]}
     ${content}=    Get File    ${matches[0]}
