@@ -5,11 +5,13 @@ import time
 import socket
 import threading
 import glob
+import subprocess
 
 # ======= CONFIGURATION ========
-USE_HDMI = False  # Set to True to use HDMI detection, False for always-on PiTFT
+USE_HDMI = False             # Set to True to use HDMI detection, False for always-on PiTFT
+USE_SENSOR_CHECK = True      # Set to False to disable the “sensor” service health check
 SOCKET_PORT = 9999
-OVERRIDE_TIMEOUT = 10  # seconds
+OVERRIDE_TIMEOUT = 10        # seconds
 
 # ======= COLORS ===============
 WHITE = (255, 255, 255)
@@ -38,7 +40,10 @@ class DisplayManager:
         self.override_data = None
         self.override_last_update = 0
         self.lock = threading.Lock()
-        self.socket_thread = threading.Thread(target=self._start_socket_server, daemon=True)
+        self.socket_thread = threading.Thread(
+            target=self._start_socket_server,
+            daemon=True
+        )
 
     def start(self):
         print("Starting display...")
@@ -82,77 +87,76 @@ class DisplayManager:
 
     def _render_text_centered(self, text, font, color, y):
         text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, y))
+        text_rect = text_surface.get_rect(
+            center=(self.screen.get_width() // 2, y)
+        )
         self.screen.blit(text_surface, text_rect)
 
     def _draw_custom_display(self, payload):
         self.screen.fill(BLACK)
 
-        screen_width = self.screen.get_width()
-        screen_height = self.screen.get_height()
+        screen_w = self.screen.get_width()
+        screen_h = self.screen.get_height()
 
         title = payload.get("title", "Invalid Payload")
         lines = payload.get("lines", [])
 
-        # === Step 1: Try largest acceptable font first ===
-        max_font_size = 48
-        min_font_size = 16
-        spacing_ratio = 1.4  # vertical spacing multiplier
+        # 1) Figure out best font size (unchanged)
+        max_fs, min_fs = 48, 16
+        spacing = 1.4
 
-        # Prepare text content including wrapped lines
         def wrap_text(text, font):
-            wrapped = []
-            words = text.split()
-            current_line = ""
-
-            for word in words:
-                test_line = f"{current_line} {word}".strip()
-                width, _ = font.size(test_line)
-                if width > screen_width - 40:  # margin padding
-                    if current_line:
-                        wrapped.append(current_line)
-                    current_line = word
+            wrp, cur = [], ""
+            for w in text.split():
+                test = (cur + " " + w).strip()
+                if font.size(test)[0] > screen_w - 40:
+                    if cur: wrp.append(cur)
+                    cur = w
                 else:
-                    current_line = test_line
-            if current_line:
-                wrapped.append(current_line)
-            return wrapped
+                    cur = test
+            if cur: wrp.append(cur)
+            return wrp
 
-        # === Step 2: Determine fitting font size ===
-        final_font_size = max_font_size
-        wrapped_lines = []
+        fs = max_fs
+        while fs >= min_fs:
+            cf = pygame.font.Font(None, fs)
+            tf = pygame.font.Font(None, int(fs * 1.3))
 
-        while final_font_size >= min_font_size:
-            content_font = pygame.font.Font(None, final_font_size)
-            title_font = pygame.font.Font(None, int(final_font_size * 1.3))
+            ttl_wr = wrap_text(title, tf)
+            cnt_wr = []
+            for ln in lines:
+                cnt_wr += wrap_text(ln.get("text", ""), cf)
 
-            all_lines = wrap_text(title, title_font)
-            for line in lines:
-                wrapped_lines += wrap_text(line.get("text", ""), content_font)
+            if (len(ttl_wr) + len(cnt_wr)) * int(fs * spacing) < screen_h - 20:
+                break
+            fs -= 2
 
-            total_height = int(final_font_size * spacing_ratio) * (len(all_lines) + 1)
-            if total_height < screen_height - 20:  # add top/bottom margin
-                break  # font size fits
+        # 2) Build render queue
+        content_font = pygame.font.Font(None, fs)
+        title_font   = pygame.font.Font(None, int(fs * 1.3))
 
-            # Too tall — try smaller font
-            final_font_size -= 2
-            wrapped_lines = []
+        render_queue = []
+        for t in wrap_text(title, title_font):
+            render_queue.append((t, title_font, YELLOW))
+        for ln in lines:
+            col = tuple(ln.get("color", WHITE))
+            for sub in wrap_text(ln.get("text", ""), content_font):
+                render_queue.append((sub, content_font, col))
 
-        # === Step 3: Render title + wrapped content ===
-        y_offset = 20
-        title_lines = wrap_text(title, title_font)
-        for line in title_lines:
-            self._render_text_centered(line, title_font, YELLOW, y_offset)
-            y_offset += int(final_font_size * spacing_ratio)
+        # 3) Compute total block height
+        total_h = sum(f.get_linesize() for _, f, _ in render_queue)
 
-        for line in lines:
-            color = tuple(line.get("color", WHITE))
-            for subline in wrap_text(line.get("text", ""), content_font):
-                self._render_text_centered(subline, content_font, color, y_offset)
-                y_offset += int(final_font_size * spacing_ratio)
+        # 4) Draw each line, starting at ( (screen_h - total_h)//2 )
+        y = (screen_h - total_h) // 2
+        x = screen_w // 2
+
+        for txt, fnt, clr in render_queue:
+            surf = fnt.render(txt, True, clr)
+            rect = surf.get_rect(midtop=(x, y))
+            self.screen.blit(surf, rect)
+            y += fnt.get_linesize()
 
         pygame.display.flip()
-
 
     def _draw_fallback_display(self):
         self.screen.fill(BLACK)
@@ -160,7 +164,22 @@ class DisplayManager:
         screen_width = self.screen.get_width()
         screen_height = self.screen.get_height()
 
-        text = "Display Controller Not Initialised"
+        # Health-check text logic
+        if USE_SENSOR_CHECK:
+            try:
+                status = subprocess.check_output(
+                    ["systemctl", "is-active", "sensor"],
+                    stderr=subprocess.DEVNULL
+                ).decode().strip()
+            except Exception:
+                status = "inactive"
+
+            if status != "active":
+                text = "Sensors Service is offline"
+            else:
+                text = "Display Client is offline"
+        else:
+            text = "Display Client is offline"
 
         # Dynamically choose font size to fit horizontally and vertically
         max_font_size = 48
@@ -175,14 +194,16 @@ class DisplayManager:
                 break
             font_size -= 2
 
-        # Final rendering
         font = pygame.font.Font(None, font_size)
         self._render_text_centered(text, font, YELLOW, screen_height // 2)
         pygame.display.flip()
 
     def draw(self):
         with self.lock:
-            if self.override_data and time.time() - self.override_last_update <= OVERRIDE_TIMEOUT:
+            if (
+                self.override_data
+                and time.time() - self.override_last_update <= OVERRIDE_TIMEOUT
+            ):
                 self._draw_custom_display(self.override_data)
             else:
                 self._draw_fallback_display()
@@ -205,7 +226,6 @@ class DisplayApp:
                 print("Display connected, starting...")
                 self.display.start()
                 self.display_active = True
-
             elif not hdmi_connected and self.display_active:
                 print("Display disconnected, stopping...")
                 self.display.stop()
@@ -214,7 +234,10 @@ class DisplayApp:
             if self.display_active:
                 self.display.draw()
                 for event in pygame.event.get():
-                    if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    if (
+                        event.type == pygame.QUIT
+                        or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)
+                    ):
                         self.running = False
             else:
                 print("No display detected. Waiting...")
