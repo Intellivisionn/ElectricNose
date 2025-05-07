@@ -15,7 +15,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version:
-          - "3.12"
           - "3.13"
     runs-on: ${{ matrix.os }}
 
