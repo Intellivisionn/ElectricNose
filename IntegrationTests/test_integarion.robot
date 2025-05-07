@@ -19,7 +19,7 @@ Integration Test With Fake Sensors
     ${PYTHON}=          Set Variable    python
     ${DATA_READER}=     Set Variable    IntegrationTests.mocks.DataReaderFake
     ${SENSOR_READER}=   Set Variable    IntegrationTests.mocks.SensorReaderFake
-    ${SAVED_DATA_DIR}=  Set Variable    ${PROJECT_ROOT}/IntegrationTests/savedData
+    ${SAVED_DATA_DIR}=  Set Variable    ${PROJECT_ROOT}/IntegrationTests/mocks/savedData
     ${SENSOR_JSON}=     Set Variable    ${PROJECT_ROOT}/IntegrationTests/mocks/sensor_data.json
 
     Start Process    ${PYTHON}    -m    ${SENSOR_READER}
