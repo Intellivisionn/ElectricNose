@@ -2,7 +2,17 @@ import socket
 import json
 import time
 import threading
-import RPi.GPIO as GPIO
+import sys
+try:
+    # real Pi
+    import RPi.GPIO as GPIO
+except ImportError:
+    # off-Pi, fall back to fake-rpi stub
+    import fake_rpi
+    # fake_rpi.RPi is the top-level, and fake_rpi.RPi.GPIO the submodule
+    sys.modules['RPi']      = fake_rpi.RPi
+    sys.modules['RPi.GPIO'] = fake_rpi.RPi.GPIO
+    import RPi.GPIO as GPIO
 
 # === Configuration ===
 SOCKET_PORT = 9999
