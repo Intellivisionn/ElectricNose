@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         working-directory: DisplayController
         run: |
-          python -m pip install --upgrade pip rpi
+          python -m pip install --upgrade pip FakeRPi
           pip install pytest pygame
 
       - name: Run tests
