@@ -1,5 +1,3 @@
-# example_usage.py
-
 from display_client import DisplayClient
 import time
 import random

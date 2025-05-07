@@ -1,5 +1,3 @@
-# display_client.py
-
 import socket
 import json
 import time
