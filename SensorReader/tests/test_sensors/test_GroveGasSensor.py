@@ -1,5 +1,5 @@
 import pytest
-from Sensors.GroveGasSensor import GroveGasSensor
+from SensorReader.Sensors.GroveGasSensor import GroveGasSensor
 
 class TestGroveGasSensor:
     def test_write_byte(self, mocker):
@@ -12,8 +12,8 @@ class TestGroveGasSensor:
 
 
     def test_read_4_bytes(self, mocker):
-        mocker.patch('Sensors.GroveGasSensor.WARMING_UP', 0xFE)
-        mocker.patch('Sensors.GroveGasSensor.GM_102B', 0x01)
+        mocker.patch('SensorReader.Sensors.GroveGasSensor.WARMING_UP', 0xFE)
+        mocker.patch('SensorReader.Sensors.GroveGasSensor.GM_102B', 0x01)
         mock_bus = mocker.Mock()
         mock_bus.read_i2c_block_data.return_value = [0x34, 0x12]  #  0x1234 → 4660
 
@@ -29,8 +29,8 @@ class TestGroveGasSensor:
 
 
     def test_preheat_and_stop_preheat(self, mocker):
-        mocker.patch('Sensors.GroveGasSensor.WARMING_UP', 0xFE)
-        mocker.patch('Sensors.GroveGasSensor.WARMING_DOWN', 0xFF)
+        mocker.patch('SensorReader.Sensors.GroveGasSensor.WARMING_UP', 0xFE)
+        mocker.patch('SensorReader.Sensors.GroveGasSensor.WARMING_DOWN', 0xFF)
         mock_bus = mocker.Mock()
         sensor = GroveGasSensor(mock_bus)
         mocker.patch.object(sensor, '_write_byte')
@@ -47,7 +47,7 @@ class TestGroveGasSensor:
 
 
     def test_change_address(self, mocker):
-        mocker.patch('Sensors.GroveGasSensor.CHANGE_I2C_ADDR', 0x55)
+        mocker.patch('SensorReader.Sensors.GroveGasSensor.CHANGE_I2C_ADDR', 0x55)
         mock_bus = mocker.Mock()
         sensor = GroveGasSensor(mock_bus)
 

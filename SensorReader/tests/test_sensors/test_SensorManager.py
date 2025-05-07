@@ -1,10 +1,10 @@
 import pytest
 
 from .BME_mock import FakeBME680Sensor
-from Sensors.BME680Sensor import BME680Sensor
+from SensorReader.Sensors.BME680Sensor import BME680Sensor
 from .SGP_mock import FakeSGP30Sensor
-from Sensors.SGP30Sensor import SGP30Sensor
-from Sensors.SensorManager import SensorManager
+from SensorReader.Sensors.SGP30Sensor import SGP30Sensor
+from SensorReader.Sensors.SensorManager import SensorManager
 
 from .SensorWithoutInterface import SensorWithoutInterface
 

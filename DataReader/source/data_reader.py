@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 class SensorDataCollector:
-    def __init__(self, sensor_json_file="/home/admin/ElectricNose-SensorReader/sensor_data.json", 
+    def __init__(self, sensor_json_file="/home/admin/ElectricNose/SensorReader/sensor_data.json", 
                  output_dir="savedData", read_interval=2, write_interval=5):
         # Shared data and synchronization
         self.sensor_data_list = []

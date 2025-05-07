@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from aspects.LoggingAspect import LoggingAspect
+from SensorReader.aspects.LoggingAspect import LoggingAspect
 
 
 class Sensor(ABC):

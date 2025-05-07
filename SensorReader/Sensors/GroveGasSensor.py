@@ -1,5 +1,5 @@
 import time
-from Sensors.SensorInterface import Sensor
+from SensorReader.Sensors.SensorInterface import Sensor
 
 # Default I2C Address for GMXXX sensor
 DEFAULT_I2C_ADDRESS = 0x08

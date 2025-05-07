@@ -1,4 +1,4 @@
-from Sensors.SensorInterface import Sensor 
+from SensorReader.Sensors.SensorInterface import Sensor 
 import adafruit_bme680
 
 BME680Address = 0x76

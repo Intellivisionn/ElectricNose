@@ -1,4 +1,4 @@
-from aspects.LoggingAspect import LoggingAspect
+from SensorReader.aspects.LoggingAspect import LoggingAspect
 
 
 class SensorManager:
