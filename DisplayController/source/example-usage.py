@@ -1,4 +1,4 @@
-from .display_client import DisplayClient
+from display_client import DisplayClient
 import time
 import random
 
