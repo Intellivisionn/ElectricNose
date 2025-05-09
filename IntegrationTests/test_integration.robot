@@ -8,7 +8,7 @@ ${PROJECT_ROOT}    ${CURDIR}/..
 ${PYTHON}          python
 ${DATA_READER}     IntegrationTests.mocks.DataReaderFake
 ${SENSOR_READER}   IntegrationTests.mocks.SensorReaderFake
-${SAVED_DATA_DIR}  ${PROJECT_ROOT}/IntegrationTests/savedData
+${SAVED_DATA_DIR}  ${PROJECT_ROOT}/IntegrationTests/mocks/savedData
 ${SENSOR_JSON}     ${PROJECT_ROOT}/IntegrationTests/mocks/sensor_data.json
 
 *** Test Cases ***
