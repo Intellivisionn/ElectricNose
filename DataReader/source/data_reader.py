@@ -3,9 +3,10 @@ import time
 import json
 from datetime import datetime
 import os
+import sys
 
 class SensorDataCollector:
-    def __init__(self, sensor_json_file="/home/admin/ElectricNose/SensorReader/sensor_data.json", 
+    def __init__(self, scent_name=None, sensor_json_file="/home/admin/ElectricNose/SensorReader/sensor_data.json", 
                  output_dir="savedData", read_interval=2, write_interval=5):
         # Shared data and synchronization
         self.sensor_data_list = []
@@ -16,8 +17,12 @@ class SensorDataCollector:
         self.read_interval = read_interval
         self.write_interval = write_interval
 
-        # Ask user for the scent name and create an output file name with current timestamp
-        self.scent_name = input("What scent you want to save: ")
+        # Get scent name from argument or prompt the user
+        if scent_name is None:
+            self.scent_name = input("What scent you want to save: ")
+        else:
+            self.scent_name = scent_name
+            
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -91,5 +96,7 @@ class SensorDataCollector:
                 self.collector.write_sensor_data(self.output_file)
 
 if __name__ == "__main__":
-    collector = SensorDataCollector()
+    # Get argument if provided
+    scent_arg = sys.argv[1] if len(sys.argv) >= 2 else None
+    collector = SensorDataCollector(scent_name=scent_arg)
     collector.start()
