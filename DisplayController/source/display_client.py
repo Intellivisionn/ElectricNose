@@ -3,6 +3,9 @@ import json
 import time
 import threading
 import sys
+
+from aop_decorators import log_call, catch_errors, measure_time
+
 try:
     # real Pi
     import RPi.GPIO as GPIO
@@ -45,9 +48,11 @@ class State:
             client.change_state(VentilatingState())
         elif name == "start":
             client.change_state(LoadingState())
+            
 
 
 class IdleState(State):
+    @log_call
     def on_entry(self, client):
         client._stop_predictor()
         client.send_idle_message()
@@ -60,12 +65,14 @@ class IdleState(State):
 
 
 class LoadingState(State):
+    @log_call
     def on_entry(self, client):
         client._stop_predictor()
         client.timer_start = time.time()
         client._last_remaining = None
         client.send_loading(client.loading_duration)
 
+    @measure_time
     def on_tick(self, client):
         rem = max(int(client.loading_duration - (time.time() - client.timer_start)), 0)
         if rem != client._last_remaining:
@@ -76,6 +83,7 @@ class LoadingState(State):
 
 
 class PredictingState(State):
+    @log_call
     def on_entry(self, client):
         client._start_predictor()
 
@@ -85,6 +93,7 @@ class PredictingState(State):
 
 
 class VentilatingState(State):
+    @log_call
     def on_entry(self, client):
         client._stop_predictor()
         client.timer_start = time.time()
@@ -101,6 +110,7 @@ class VentilatingState(State):
 
 
 class PausedState(State):
+    @log_call
     def on_entry(self, client):
         client._stop_predictor()
         client.send_paused()
@@ -113,6 +123,7 @@ class PausedState(State):
 
 
 class CancelledState(State):
+    @log_call
     def on_entry(self, client):
         client._stop_predictor()
         client.send_message("Cancelled", ["Operation was cancelled."])
@@ -144,6 +155,7 @@ class DisplayClient:
 
         self._setup_gpio()
 
+    @log_call
     def change_state(self, new_state):
         self._state = new_state
         self._state.on_entry(self)
@@ -170,20 +182,19 @@ class DisplayClient:
                 callback=lambda ch, n=name: self._button_pressed(n),
                 bouncetime=200
             )
-
+    
+    @log_call
     def _button_pressed(self, name):
         with self._lock:
             # delegate to state
             self._state.on_button(self, name)
 
     # === Socket communication ===
+    @catch_errors
     def _send_payload(self, payload):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((SOCKET_HOST, SOCKET_PORT))
-                s.sendall(json.dumps(payload).encode())
-        except Exception as e:
-            print(f"[DisplayClient] Socket error: {e}")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((SOCKET_HOST, SOCKET_PORT))
+            s.sendall(json.dumps(payload).encode())
 
     def send_message(self, title, lines):
         formatted = []
@@ -195,48 +206,71 @@ class DisplayClient:
         self._send_payload({"title": title, "lines": formatted})
 
     def send_idle_message(self):
-        self.send_message("Ready", ["Insert sample and press START."])
+        self.send_message("READY", [
+            {"text": "Insert sample", "color": [255, 255, 255]},
+            {"text": "Press START to begin", "color": [0, 255, 0]}
+        ])
+
 
     def send_paused(self):
-        self.send_message("Paused", ["The process is currently halted."])
+        self.send_message("PAUSED", [
+            {"text": "The process is currently halted.", "color": [255, 255, 0]},
+            {"text": "Press any button to resume or cancel.", "color": [200, 200, 200]}
+        ])
+
 
     def send_loading(self, remaining):
-        self.send_message("Loading...", [f"{remaining} seconds remaining..."])
+        dots = "." * ((int(time.time()) % 3) + 1)
+        self.send_message("LOADING" + dots, [
+            {"text": f"{remaining} seconds remaining", "color": [200, 200, 255]},
+            {"text": "Detecting aroma", "color": [150, 150, 255]}
+        ])
 
     def send_prediction(self, scent, confidence):
         pct = float(confidence) * 100
-        self.send_message("Prediction", [
-            {"text": scent, "color": [255, 255, 255]},
-            {"text": f"Confidence: {pct:.1f}%", "color": [0, 255, 0]}
+
+        if pct < 50:
+            color = [255, 0, 0]       # Red for low confidence
+        elif pct < 80:
+            color = [255, 255, 0]     # Yellow for medium
+        else:
+            color = [0, 255, 0]       # Green for high
+
+        self.send_message("PREDICTION RESULT", [
+            {"text": scent.upper(), "color": [255, 255, 255]},
+            {"text": f"Confidence: {pct:.1f}%", "color": color}
         ])
+
+
 
     def send_ventilation_timer(self, remaining):
         mins = remaining // 60
         secs = remaining % 60
-        self.send_message("Ventilating", [f"{mins}:{secs:02d} remaining..."])
+        self.send_message("VENTILATING", [
+            {"text": f"Time left: {mins}:{secs:02d}", "color": [0, 200, 255]},
+            {"text": "Clearing air", "color": [150, 150, 200]}
+        ])
+
 
     # === Single-shot prediction API ===
     def provide_prediction(self, scent, confidence):
         self.send_prediction(scent, confidence)
 
     # === Continuous predictor control ===
+    @catch_errors
+    def _prediction_loop(self):
+        while not self._predict_stop_event.is_set():
+            res = self.on_predict()
+            if isinstance(res, tuple) and len(res) == 2:
+                self.send_prediction(*res)
+            time.sleep(0.1)
+
     def _start_predictor(self):
         if not self.on_predict:
             return
         self._predict_stop_event.clear()
 
-        def _loop():
-            while not self._predict_stop_event.is_set():
-                try:
-                    res = self.on_predict()
-                    if isinstance(res, tuple) and len(res) == 2:
-                        self.send_prediction(*res)
-                except Exception as e:
-                    print(f"[DisplayClient] Prediction error: {e}")
-                    break
-                time.sleep(0.1)
-
-        self._predict_thread = threading.Thread(target=_loop, daemon=True)
+        self._predict_thread = threading.Thread(target=self._prediction_loop, daemon=True)
         self._predict_thread.start()
 
     def _stop_predictor(self):
