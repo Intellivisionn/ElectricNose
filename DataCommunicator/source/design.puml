@@ -1,0 +1,75 @@
+@startuml
+skinparam classAttributeIconSize 0
+title DataCommunicator
+
+' ===== CLIENT-SIDE INTERFACE =====
+interface IDataConnection {
+    +connect()
+    +send(to: str, payload: dict)
+    +broadcast(payload: dict)
+    +set_client(client: BaseDataClient)
+}
+
+abstract class BaseDataClient {
+    -name: str
+    -connection: IDataConnection
+    +start()
+    +run()
+    +on_message(from: str, payload: dict)
+}
+
+BaseDataClient --> IDataConnection : uses
+IDataConnection --> BaseDataClient : notifies via on_message
+
+' ===== IMPLEMENTATION: WEBSOCKET =====
+class WebSocketConnection implements IDataConnection {
+    -ws: WebSocket
+    -client: BaseDataClient
+    +connect()
+    +send()
+    +broadcast()
+    +set_client()
+    -_listen()
+}
+
+' ===== MODULE CLIENTS =====
+class SensorReaderClient extends BaseDataClient {
+    +run()
+}
+
+class DataCollectorClient extends BaseDataClient {
+    +on_message()
+}
+
+class IOHandlerClient extends BaseDataClient {
+    +run()
+    +on_message()
+    +handle_button()
+}
+
+class OdourRecognizerClient extends BaseDataClient {
+    +run()
+    +on_message()
+    +predict()
+}
+
+BaseDataClient <|-- SensorReaderClient
+BaseDataClient <|-- DataCollectorClient
+BaseDataClient <|-- IOHandlerClient
+BaseDataClient <|-- OdourRecognizerClient
+
+' ===== SERVER: BROKER =====
+class MessageBrokerServer {
+    +start()
+    +route(from: str, to: str, payload: dict)
+    +broadcast(from: str, payload: dict)
+    +handler(websocket, path)
+    -connections: dict[str, WebSocket]
+}
+
+note right of MessageBrokerServer
+Runs in its own process.
+Forwards JSON messages between named clients.
+Clients connect via WebSocketConnection.
+end note
+@enduml
