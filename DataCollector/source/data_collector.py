@@ -116,6 +116,7 @@ class SensorDataCollector:
             self.collector = collector
 
         async def run(self):
+            await self.connection.subscribe('sensor_readings')
             # Keep the WebSocket connection alive indefinitely
             await asyncio.Future()
 

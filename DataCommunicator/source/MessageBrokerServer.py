@@ -10,6 +10,7 @@ class MessageBrokerServer:
     def __init__(self, host: str = 'localhost', port: int = 8765):
         self.host = host
         self.port = port
+        self.topics: dict[str, set[str]] = {}  # topic -> set of client names
         self.connections: dict[str, websockets.WebSocketServerProtocol] = {}
 
     async def handler(self, websocket, path=None):
@@ -27,14 +28,35 @@ class MessageBrokerServer:
 
             async for message in websocket:
                 msg = json.loads(message)
-                to   = msg.get('to')
-                frm  = msg.get('from')
-                p    = msg.get('payload')
+                mtype = msg.get('type')
 
-                if to == 'broadcast':
-                    await self.broadcast(frm, p)
+                if mtype == 'subscribe':
+                    topic = msg['topic']
+                    name = msg['name']
+                    self.topics.setdefault(topic, set()).add(name)
+                    print(f'[Broker] {name} subscribed to {topic}')
+
+                elif mtype == 'unsubscribe':
+                    topic = msg['topic']
+                    name = msg['name']
+                    self.topics.get(topic, set()).discard(name)
+                    print(f'[Broker] {name} unsubscribed from {topic}')
+
+                elif mtype == 'publish':
+                    topic = msg['topic']
+                    frm = msg['from']
+                    payload = msg['payload']
+                    await self.publish(topic, frm, payload)
+
                 else:
-                    await self.route(frm, to, p)
+                    # fallback to old style direct message
+                    to   = msg.get('to')
+                    frm  = msg.get('from')
+                    payload = msg.get('payload')
+                    if to == 'broadcast':
+                        await self.broadcast(frm, payload)
+                    else:
+                        await self.route(frm, to, payload)
 
         except websockets.exceptions.ConnectionClosed:
             pass
@@ -60,6 +82,13 @@ class MessageBrokerServer:
         msg = json.dumps({'from': frm, 'payload': payload})
         for nm, ws in self.connections.items():
             await ws.send(msg)
+
+    async def publish(self, topic: str, frm: str, payload: dict):
+        msg = json.dumps({'from': frm, 'topic': topic, 'payload': payload})
+        for name in self.topics.get(topic, set()):
+            ws = self.connections.get(name)
+            if ws:
+                await ws.send(msg)
 
     async def _serve(self):
         server = await websockets.serve(self.handler, self.host, self.port)

@@ -70,8 +70,8 @@ class SensorReaderClient(BaseDataClient):
             with open(self.reader.output_path, "r") as f:
                 data = json.load(f)
 
-            # 3) send to the collector client
-            await self.connection.send('collector', data)
+            # 3) send to the topic of "sensor_readings"
+            await self.connection.send('topic:sensor_readings', data)
 
             await asyncio.sleep(self.reader.sleep_interval)
 
