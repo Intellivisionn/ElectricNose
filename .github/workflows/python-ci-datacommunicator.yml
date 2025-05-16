@@ -1,4 +1,4 @@
-name: Python DataReader CI
+name: Python DataCommunicator CI
 
 on:
   push:
