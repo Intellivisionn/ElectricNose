@@ -2,74 +2,86 @@
 skinparam classAttributeIconSize 0
 title DataCommunicator
 
-' ===== CLIENT-SIDE INTERFACE =====
-interface IDataConnection {
-    +connect()
-    +send(to: str, payload: dict)
-    +broadcast(payload: dict)
-    +set_client(client: BaseDataClient)
+' ===== SERVER INTERFACE AND IMPLS =====
+interface IDataCommunicator {
+    +start()
+    +stop()
+    +send(from: str, to: str, payload: dict)
+    +broadcast(from: str, payload: dict)
+    +subscribe(client_name: str, topic: str)
+    +unsubscribe(client_name: str, topic: str)
+    +register_sender(client: BaseDataClient)
+    +register_receiver(client: BaseDataClient)
+    +unregister(client_name: str)
 }
 
+class WebSocketDataCommunicator implements IDataCommunicator {
+    -senders: dict
+    -receivers: dict
+    -topics: dict
+    +start()
+    +stop()
+    +send(from, to, payload)
+    +broadcast(from, payload)
+    +subscribe(client_name, topic)
+    +unsubscribe(client_name, topic)
+    +register_sender(client)
+    +register_receiver(client)
+    +unregister(client_name)
+}
+
+' ===== BASE CLIENT =====
 abstract class BaseDataClient {
     -name: str
-    -connection: IDataConnection
-    +start()
-    +run()
+    -communicator: IDataCommunicator
+    +get_name(): str
+    +set_communicator(comm: IDataCommunicator)
+    +send(to: str, payload: dict)  ' topic: prefix supported
+    +broadcast(payload: dict)
     +on_message(from: str, payload: dict)
 }
 
-BaseDataClient --> IDataConnection : uses
-IDataConnection --> BaseDataClient : notifies via on_message
-
-' ===== IMPLEMENTATION: WEBSOCKET =====
-class WebSocketConnection implements IDataConnection {
-    -ws: WebSocket
-    -client: BaseDataClient
-    +connect()
-    +send()
-    +broadcast()
-    +set_client()
-    -_listen()
-}
-
-' ===== MODULE CLIENTS =====
+' ===== MODULE IMPLEMENTATIONS =====
 class SensorReaderClient extends BaseDataClient {
-    +run()
+    +generate_readings()
 }
 
 class DataCollectorClient extends BaseDataClient {
-    +on_message()
+    +on_message(from, payload)
+    +log_data()
 }
 
 class IOHandlerClient extends BaseDataClient {
-    +run()
-    +on_message()
+    +on_message(from, payload)
     +handle_button()
 }
 
+class DisplayControllerClient extends BaseDataClient {
+    +on_message(from, payload)
+    +update_display()
+}
+
 class OdourRecognizerClient extends BaseDataClient {
-    +run()
-    +on_message()
+    +on_message(from, payload)
     +predict()
 }
+
+' ===== RELATIONSHIPS =====
+IDataCommunicator <|.. WebSocketDataCommunicator
 
 BaseDataClient <|-- SensorReaderClient
 BaseDataClient <|-- DataCollectorClient
 BaseDataClient <|-- IOHandlerClient
+BaseDataClient <|-- DisplayControllerClient
 BaseDataClient <|-- OdourRecognizerClient
 
-' ===== SERVER: BROKER =====
-class MessageBrokerServer {
-    +start()
-    +route(from: str, to: str, payload: dict)
-    +broadcast(from: str, payload: dict)
-    +handler(websocket, path)
-    -connections: dict[str, WebSocket]
-}
+SensorReaderClient --> IDataCommunicator : publishes to sensor_readings
+DataCollectorClient --> IDataCommunicator : subscribes to sensor_readings
 
-note right of MessageBrokerServer
-Runs in its own process.
-Forwards JSON messages between named clients.
-Clients connect via WebSocketConnection.
-end note
+IOHandlerClient --> IDataCommunicator : publishes to io_state_updates
+DisplayControllerClient --> IDataCommunicator : subscribes to io_state_updates
+OdourRecognizerClient --> IDataCommunicator : subscribes to io_state_updates
+
+WebSocketDataCommunicator --> BaseDataClient : dispatches on_message()
+WebSocketDataCommunicator --> BaseDataClient : receives from client
 @enduml
