@@ -46,9 +46,18 @@ class SensorDataCollector:
         self.writer_thread = None
 
     def start(self):
+        # Receiver wrapper that catches connection errors
+        def _run_receiver():
+            try:
+                asyncio.run(self.receiver.start())
+            except Exception as e:
+                print(f"[collector] Receiver error: {e}")
+                # signal shutdown
+                self.stop_event.set()
+
         # Start the WebSocket receiver in a background thread
         receiver_thread = threading.Thread(
-            target=lambda: asyncio.run(self.receiver.start()),
+            target=_run_receiver,
             daemon=True
         )
         receiver_thread.start()
@@ -58,12 +67,14 @@ class SensorDataCollector:
         self.writer_thread.start()
 
         try:
-            # Keep the main thread alive until interrupted
-            while True:
+            # Keep main thread alive until stop_event or Ctrl-C
+            while not self.stop_event.is_set():
                 time.sleep(0.1)
         except KeyboardInterrupt:
             print("Stopping data collection...")
             self.stop_event.set()
+        finally:
+            # Ensure both threads are joined
             receiver_thread.join()
             self.writer_thread.join()
             print("Data collection stopped.")
@@ -105,7 +116,7 @@ class SensorDataCollector:
             await asyncio.Future()
 
         async def on_message(self, frm: str, payload: dict):
-            # Optionally add a timestamp
+            # Add a timestamp and store
             payload['timestamp'] = datetime.now().isoformat()
             with self.collector.data_lock:
                 self.collector.sensor_data_list.append(payload)
