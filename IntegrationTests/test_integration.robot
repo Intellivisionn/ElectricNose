@@ -7,9 +7,9 @@ Library    glob
 ${PROJECT_ROOT}      ${CURDIR}/..
 ${PYTHON}            python
 ${BROKER}            DataCommunicator.source.MessageBrokerServer
-${DATA_COLLECTOR}    DataCollector.source.data_collector.py
+${DATA_COLLECTOR}    DataCollector.source.data_collector
 ${SENSOR_READER}     IntegrationTests.mocks.SensorReaderFake
-${SAVED_DATA_DIR}    ${PROJECT_ROOT}/IntegrationTests/mocks/savedData
+${SAVED_DATA_DIR}    ${PROJECT_ROOT}/savedData
 ${SENSOR_JSON}       ${PROJECT_ROOT}/IntegrationTests/mocks/sensor_data.json
 
 *** Test Cases ***
@@ -20,24 +20,27 @@ Integration Test With Fake Sensors
     Set Environment Variable    BROKER_URI    ws://localhost:8765
     Set Environment Variable    BROKER_PORT   8765
 
-    # 1) start the fake WebSocket broker
+    # 1) Start the WebSocket broker
     Start Process    ${PYTHON}    -m    ${BROKER}    cwd=${PROJECT_ROOT}
-    Sleep            1s
+    Sleep            1s    # Allow broker to bind port before clients connect
 
-    # 2) start the fake sensor producer (registers & broadcasts)
-    Start Process    ${PYTHON}    -m    ${SENSOR_READER}
-    ...              cwd=${PROJECT_ROOT}
-    ...              stdout=IntegrationTests/reader.log
-    ...              stderr=IntegrationTests/reader.err
-    Sleep            5s
-
-    # 3) start the real DataCollector (connects, receives, writes)
+    # 2) Start the real DataCollector
     Start Process    ${PYTHON}    -m    ${DATA_COLLECTOR}
     ...              cwd=${PROJECT_ROOT}
     ...              stdin=test_scent
-    Sleep            10s
 
+    # 3) Start the fake sensor producer
+    Start Process    ${PYTHON}    -m    ${SENSOR_READER}
+    ...              cwd=${PROJECT_ROOT}
+
+    # ─── Let the system run a while to collect some data ───
+    Sleep            15s
+
+    # ─── Clean up ───
     Terminate All Processes
+
+    # ─── Let the system wait a bit before evaluating ───
+    Sleep            5s
 
     # ─── Verify output file contains at least one reading ───
     ${search_path}=    Normalize Path    ${SAVED_DATA_DIR}/test_scent_*.json
@@ -49,16 +52,11 @@ Integration Test With Fake Sensors
     Length Should Be    ${matches}    1
     File Should Exist   ${matches}[0]
     ${content}=         Get File         ${matches}[0]
-    Should Contain      ${content}       value
+    Should Contain      ${content}       TVOC
+    Should Contain      ${content}       BME680Sensor
     Should Contain      ${content}       timestamp
 
-    # ─── Dump reader logs for debugging ───
-    ${reader_stdout}=   Get File         IntegrationTests/reader.log
-    ${reader_stderr}=   Get File         IntegrationTests/reader.err
-    Log                 Reader STDOUT: ${reader_stdout}
-    Log                 Reader STDERR: ${reader_stderr}
-
-    # ─── Clean up ───
+    # ─── Final cleanup ───
     @{files}=           List Files In Directory    ${SAVED_DATA_DIR}   absolute=True
     FOR    ${file}    IN    @{files}
         Remove File    ${file}
