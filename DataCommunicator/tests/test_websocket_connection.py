@@ -2,8 +2,8 @@ import asyncio
 import json
 import pytest
 
-import source.WebSocketConnection as ws_module
-from source.WebSocketConnection import WebSocketConnection
+import DataCommunicator.source.WebSocketConnection as ws_module
+from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 from asyncio import QueueEmpty
 
 class FakeWS:

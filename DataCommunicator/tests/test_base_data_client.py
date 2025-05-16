@@ -1,6 +1,6 @@
 import pytest
 
-from source.BaseDataClient import BaseDataClient
+from DataCommunicator.source.BaseDataClient import BaseDataClient
 
 class DummyConn:
     def __init__(self):

@@ -2,8 +2,8 @@ import asyncio
 import json
 import pytest
 
-import source.MessageBrokerServer as m_mod
-from source.MessageBrokerServer import MessageBrokerServer
+import DataCommunicator.source.MessageBrokerServer as m_mod
+from DataCommunicator.source.MessageBrokerServer import MessageBrokerServer
 
 class DummyWebSocket:
     """
