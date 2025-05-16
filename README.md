@@ -2,11 +2,14 @@
 
 The **ElectricNose** project is a full-stack sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
 
-It consists of three main components:
+It consists of these components:
 
 - **SensorReader** – Real-time sensor data collection
-- **DisplayController** – Live visualization on HDMI/Adafruit screens
-- **DataReader** – Historical data logging for analysis
+- **DisplayController** – Live visualization and IO Controlls
+- **DataCollector** – Historical data logging from Sensors for training the model
+- **DataCommunicator** - Allows communication between different components
+- **OdourRecognizer** - The ML module making the odour classification possible.
+- **GraphPlotter** - Plot graphs using the collected sensor information.
 
 ---
 
@@ -16,15 +19,18 @@ It consists of three main components:
 ElectricNose/
 ├── SensorReader/                # Sensor data collection module
 ├── DisplayController/           # Real-time visualization module
-├── DataReader/                  # Data logging module
-├── services/                    # systemd service files
+├── DataCollector/               # Data logging module
+├── DataCommunicator/            # Communication beacon
+├── IntegrationTests/            # Robot Framework integration test for system modules
+├── system-services/             # systemd service files
 ├── README.md                    # (this file)
+├── .gitignore                   # Files to be ignored by GitHub
+├── .gitmodules                  # Git sub-repositories used by project
 ├── LICENSE                      # MIT License
 └── .github/workflows/           # CI pipelines
 ```
 
 ---
-
 ## 🚀 Components Overview
 
 ### 📈 SensorReader
@@ -82,9 +88,9 @@ sudo systemctl start display.service
 
 ---
 
-### 💃 DataReader
+### 💃 DataCollector
 
-Background process that reads sensor data every few seconds and archives it with timestamps.
+Process that reads sensor data every few seconds and archives it with timestamps.
 
 - Threaded reader/writer design
 - Customizable intervals
@@ -94,12 +100,51 @@ Background process that reads sensor data every few seconds and archives it with
 
 ```bash
 cd DataReader
+source /venv/bin/activate
 python3 main.py
 ```
 
 You'll be prompted for a "scent" name, and a file like `mint_20250420_152010.json` will be saved inside `DataReader/savedData/`.
 
 ---
+
+### 🔗 DataCommunicator
+
+The **DataCommunicator** is a lightweight, asynchronous WebSocket-based messaging layer that enables decoupled communication between all system modules (SensorReader, DisplayController, DataCollector, etc.).
+
+It uses a **publish-subscribe model**:
+- Clients can **send** to topics (e.g., `"topic:sensor_readings"`)
+- Other clients **subscribe** to receive those topic messages
+- A central **MessageBrokerServer** routes messages and handles registration
+
+**Features:**
+- Asynchronous WebSocket message broker
+- Topic-based publish/subscribe messaging
+- Broadcast support
+- Easily extendable with custom clients
+- Thread-safe integration into long-running UI or hardware loops
+
+**Available topics:**
+- `sensor_readings` – Data emitted from `SensorReader`
+- `io_state_updates` – Published by `IOHandler`, consumed by `DisplayController`, `OdourRecognizer`, etc.
+
+**Example Pub/Sub Flow:**
+```
+SensorReader → topic:sensor_readings → DataCollector
+IOHandler → topic:io_state_updates → DisplayController, OdourRecognizer
+```
+
+**Run the message broker:**
+```bash
+cd DataCommunicator
+python3 MessageBrokerServer.py
+```
+
+**Client Example:**
+```python
+await self.connection.send('topic:sensor_readings', payload)
+await self.connection.subscribe('sensor_readings')
+```
 
 ## ⚙️ Installation & Setup
 
