@@ -27,9 +27,13 @@ class SensorDataCollector:
 
         # Determine scent name
         if scent_name is None:
-            self.scent_name = input("What scent you want to save: ")
+            if sys.stdin.isatty():
+                self.scent_name = input("What scent you want to save: ")
+            else:
+                self.scent_name = "test_scent"
         else:
             self.scent_name = scent_name
+
 
         # Prepare output file path
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -6,8 +6,8 @@ Library    glob
 *** Variables ***
 ${PROJECT_ROOT}      ${CURDIR}/..
 ${PYTHON}            python
-${BROKER}            IntegrationTests.mocks.WebSocketFake
-${DATA_COLLECTOR}    IntegrationTests.mocks.DataCollectorFake
+${BROKER}            DataCommunicator.source.MessageBrokerServer
+${DATA_COLLECTOR}    DataCollector.source.data_collector.py
 ${SENSOR_READER}     IntegrationTests.mocks.SensorReaderFake
 ${SAVED_DATA_DIR}    ${PROJECT_ROOT}/IntegrationTests/mocks/savedData
 ${SENSOR_JSON}       ${PROJECT_ROOT}/IntegrationTests/mocks/sensor_data.json
