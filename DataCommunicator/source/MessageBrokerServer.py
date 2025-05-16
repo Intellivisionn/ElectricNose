@@ -1,5 +1,3 @@
-# DataCommunicator.py
-
 import asyncio
 import json
 import websockets

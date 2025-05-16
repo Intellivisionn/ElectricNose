@@ -1,5 +1,3 @@
-# Example.py
-
 import asyncio
 import random
 

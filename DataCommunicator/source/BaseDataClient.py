@@ -1,5 +1,3 @@
-# BaseDataClient.py
-
 from abc import ABC, abstractmethod
 
 class BaseDataClient(ABC):
