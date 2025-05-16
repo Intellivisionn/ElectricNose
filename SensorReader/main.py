@@ -1,3 +1,7 @@
+import sys, os
+# insert project root (one level up from SensorReader/source) onto PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
+
 import time
 import json
 from pathlib import Path

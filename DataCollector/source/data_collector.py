@@ -1,3 +1,7 @@
+import sys, os
+# insert project root (one level up from DataCollector/source) onto PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
+
 import threading
 import time
 import json
