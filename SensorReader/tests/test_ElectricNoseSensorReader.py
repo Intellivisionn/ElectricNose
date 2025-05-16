@@ -3,6 +3,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+sys.modules['DataCommunicator.source.WebSocketConnection'] = MagicMock()
+sys.modules['DataCommunicator.source.BaseDataClient']    = MagicMock()
 sys.modules['smbus2'] = MagicMock()
 from SensorReader.main import ElectricNoseSensorReader
 

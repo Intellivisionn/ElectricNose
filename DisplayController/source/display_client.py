@@ -1,8 +1,7 @@
-import socket
-import json
 import time
 import threading
-import sys
+import socket
+import json
 try:
     # real Pi
     import RPi.GPIO as GPIO
@@ -14,117 +13,29 @@ except ImportError:
     sys.modules['RPi.GPIO'] = fake_rpi.RPi.GPIO
     import RPi.GPIO as GPIO
 
+from display_core import (
+    DisplayInterface, BaseState, IdleState, LoadingState, PredictingState,
+    VentilatingState, PausedState, CancelledState, log_call, catch_errors
+)
+
 # === Configuration ===
 SOCKET_PORT = 9999
 SOCKET_HOST = "localhost"
-KEEPALIVE_INTERVAL = 5  # seconds; keeps display alive during IDLE and PAUSED
 
 BUTTON_PINS = {
-    "start":      17,
-    "ventilate":  22,
-    "cancel":     23,
-    "halt":       27,
+    "start": 17,
+    "ventilate": 22,
+    "cancel": 23,
+    "halt": 27,
 }
-
-
-# === State Pattern Base ===
-class State:
-    def on_entry(self, client):
-        pass
-
-    def on_tick(self, client):
-        pass
-
-    def on_button(self, client, name):
-        # default: any button overrides into its state
-        if name == "halt":
-            client.change_state(PausedState())
-        elif name == "cancel":
-            client.change_state(CancelledState())
-        elif name == "ventilate":
-            client.change_state(VentilatingState())
-        elif name == "start":
-            client.change_state(LoadingState())
-
-
-class IdleState(State):
-    def on_entry(self, client):
-        client._stop_predictor()
-        client.send_idle_message()
-        client._last_heartbeat = time.time()
-
-    def on_tick(self, client):
-        if time.time() - client._last_heartbeat > KEEPALIVE_INTERVAL:
-            client.send_idle_message()
-            client._last_heartbeat = time.time()
-
-
-class LoadingState(State):
-    def on_entry(self, client):
-        client._stop_predictor()
-        client.timer_start = time.time()
-        client._last_remaining = None
-        client.send_loading(client.loading_duration)
-
-    def on_tick(self, client):
-        rem = max(int(client.loading_duration - (time.time() - client.timer_start)), 0)
-        if rem != client._last_remaining:
-            client.send_loading(rem)
-            client._last_remaining = rem
-        if rem == 0:
-            client.change_state(PredictingState())
-
-
-class PredictingState(State):
-    def on_entry(self, client):
-        client._start_predictor()
-
-    def on_tick(self, client):
-        # predictor thread handles continuous send
-        pass
-
-
-class VentilatingState(State):
-    def on_entry(self, client):
-        client._stop_predictor()
-        client.timer_start = time.time()
-        client._last_remaining = None
-        client.send_ventilation_timer(client.ventilation_duration)
-
-    def on_tick(self, client):
-        rem = max(int(client.ventilation_duration - (time.time() - client.timer_start)), 0)
-        if rem != client._last_remaining:
-            client.send_ventilation_timer(rem)
-            client._last_remaining = rem
-        if rem == 0:
-            client.change_state(IdleState())
-
-
-class PausedState(State):
-    def on_entry(self, client):
-        client._stop_predictor()
-        client.send_paused()
-        client._last_heartbeat = time.time()
-
-    def on_tick(self, client):
-        if time.time() - client._last_heartbeat > KEEPALIVE_INTERVAL:
-            client.send_paused()
-            client._last_heartbeat = time.time()
-
-
-class CancelledState(State):
-    def on_entry(self, client):
-        client._stop_predictor()
-        client.send_message("Cancelled", ["Operation was cancelled."])
-        # after a brief pause, go back to idle
-        threading.Timer(2, lambda: client.change_state(IdleState())).start()
-
 
 # === DisplayClient with State Pattern ===
 class DisplayClient:
-    def __init__(self, loading_duration=5, ventilation_duration=300):
+    def __init__(self, display: DisplayInterface, loading_duration=5, ventilation_duration=300, keepalive=5):
+        self.display = display
         self.loading_duration = loading_duration
         self.ventilation_duration = ventilation_duration
+        self.keepalive = keepalive
 
         self.timer_start = None
         self._last_remaining = None
@@ -144,7 +55,8 @@ class DisplayClient:
 
         self._setup_gpio()
 
-    def change_state(self, new_state):
+    @log_call
+    def change_state(self, new_state: BaseState):
         self._state = new_state
         self._state.on_entry(self)
 
@@ -170,20 +82,19 @@ class DisplayClient:
                 callback=lambda ch, n=name: self._button_pressed(n),
                 bouncetime=200
             )
-
+    
+    @log_call
     def _button_pressed(self, name):
         with self._lock:
             # delegate to state
             self._state.on_button(self, name)
 
     # === Socket communication ===
+    @catch_errors
     def _send_payload(self, payload):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((SOCKET_HOST, SOCKET_PORT))
-                s.sendall(json.dumps(payload).encode())
-        except Exception as e:
-            print(f"[DisplayClient] Socket error: {e}")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((SOCKET_HOST, SOCKET_PORT))
+            s.sendall(json.dumps(payload).encode())
 
     def send_message(self, title, lines):
         formatted = []
@@ -195,31 +106,52 @@ class DisplayClient:
         self._send_payload({"title": title, "lines": formatted})
 
     def send_idle_message(self):
-        self.send_message("Ready", ["Insert sample and press START."])
+        self.send_message("READY", [
+            {"text": "Insert sample", "color": [255, 255, 255]},
+            {"text": "Press START to begin", "color": [0, 255, 0]}
+        ])
+
 
     def send_paused(self):
-        self.send_message("Paused", ["The process is currently halted."])
+        self.send_message("PAUSED", [
+            {"text": "The process is currently halted.", "color": [255, 255, 0]},
+            {"text": "Press any button to resume or cancel.", "color": [200, 200, 200]}
+        ])
+
 
     def send_loading(self, remaining):
-        self.send_message("Loading...", [f"{remaining} seconds remaining..."])
+        dots = "." * ((int(time.time()) % 3) + 1)
+        self.send_message("LOADING" + dots, [
+            {"text": f"{remaining} seconds remaining", "color": [200, 200, 255]},
+            {"text": "Detecting aroma", "color": [150, 150, 255]}
+        ])
 
     def send_prediction(self, scent, confidence):
         pct = float(confidence) * 100
-        self.send_message("Prediction", [
-            {"text": scent, "color": [255, 255, 255]},
-            {"text": f"Confidence: {pct:.1f}%", "color": [0, 255, 0]}
+
+        if pct < 50:
+            color = [255, 0, 0]       # Red for low confidence
+        elif pct < 80:
+            color = [255, 255, 0]     # Yellow for medium
+        else:
+            color = [0, 255, 0]       # Green for high
+
+        self.send_message("PREDICTION RESULT", [
+            {"text": scent.upper(), "color": [255, 255, 255]},
+            {"text": f"Confidence: {pct:.1f}%", "color": color}
         ])
+
+
 
     def send_ventilation_timer(self, remaining):
         mins = remaining // 60
         secs = remaining % 60
-        self.send_message("Ventilating", [f"{mins}:{secs:02d} remaining..."])
+        self.send_message("VENTILATING", [
+            {"text": f"Time left: {mins}:{secs:02d}", "color": [0, 200, 255]},
+            {"text": "Clearing air", "color": [150, 150, 200]}
+        ])
 
-    # === Single-shot prediction API ===
-    def provide_prediction(self, scent, confidence):
-        self.send_prediction(scent, confidence)
 
-    # === Continuous predictor control ===
     def _start_predictor(self):
         if not self.on_predict:
             return
@@ -228,13 +160,12 @@ class DisplayClient:
         def _loop():
             while not self._predict_stop_event.is_set():
                 try:
-                    res = self.on_predict()
-                    if isinstance(res, tuple) and len(res) == 2:
-                        self.send_prediction(*res)
+                    scent, confidence = self.on_predict()
+                    self.send_prediction(scent, confidence)
+                    time.sleep(0.1)
                 except Exception as e:
-                    print(f"[DisplayClient] Prediction error: {e}")
+                    print(f"[Predictor] Error: {e}")
                     break
-                time.sleep(0.1)
 
         self._predict_thread = threading.Thread(target=_loop, daemon=True)
         self._predict_thread.start()
@@ -251,3 +182,16 @@ class DisplayClient:
             with self._lock:
                 self._state.on_tick(self)
             time.sleep(0.1)
+
+# === HDMI and PiTFT display implementations ===
+class HDMIDisplay(DisplayInterface):
+    def show(self, title, lines):
+        print(f"=== {title} ===")
+        for line in lines:
+            print(line["text"])
+
+class PiTFTDisplay(DisplayInterface):
+    def show(self, title, lines):
+        print(f"[PiTFT] {title}")
+        for line in lines:
+            print(f"{line['text']}")
