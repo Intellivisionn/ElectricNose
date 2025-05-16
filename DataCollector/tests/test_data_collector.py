@@ -37,6 +37,8 @@ from source.data_collector import SensorDataCollector
 class TestSensorDataCollector:
 
     def test_constructor_uses_input_when_no_scent(self, tmp_path, monkeypatch):
+        # Simulate interactive terminal
+        monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
         # Patch input() to return a custom scent name
         monkeypatch.setattr('builtins.input', lambda prompt: 'my_scent')
         outdir = str(tmp_path / "outdir")
@@ -45,9 +47,7 @@ class TestSensorDataCollector:
             output_dir=outdir,
             write_interval=3
         )
-        # Should have used our fake input value
         assert collector.scent_name == 'my_scent'
-        # output_file should live under our tmp outdir and start with 'my_scent_'
         base = os.path.basename(collector.output_file)
         assert base.startswith('my_scent_')
         assert os.path.dirname(collector.output_file) == outdir
