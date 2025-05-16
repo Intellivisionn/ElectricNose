@@ -4,7 +4,7 @@ import threading
 import time
 from datetime import datetime
 from unittest.mock import patch
-from source.data_reader import SensorDataCollector
+from DataCollector.source.data_collector import SensorDataCollector
 
 class TestSensorDataCollector:
 
