@@ -1,0 +1,15 @@
+[Unit]
+Description=Sensor Reader Service
+After=network.target
+
+[Service]
+User=admin
+WorkingDirectory=/home/admin/ElectricNose/DataCommunicator
+ExecStart=/bin/bash /home/admin/ElectricNose/system-services/communicator_service.sh
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/communicator_service.log
+StandardError=append:/var/log/communicator_service.log
+
+[Install]
+WantedBy=multi-user.target
