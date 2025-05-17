@@ -1,0 +1,129 @@
+@startuml
+skinparam classAttributeIconSize 0
+title ElectronicNose Interface
+
+interface IDisplay {
+    +start()
+    +stop()
+    +draw(data)
+    +check_connection() : bool
+}
+
+class PiTFTDisplay implements IDisplay {
+    +start()
+    +stop()
+    +draw(data)
+    +check_connection()
+}
+
+class HDMIDisplay implements IDisplay {
+    +start()
+    +stop()
+    +draw(data)
+    +check_connection()
+}
+
+interface IIOHandler {
+    +start()
+    +stop()
+    +on_button_press(name)
+    +connect(uri)
+    +send(event)
+    +on_message(callback)
+}
+
+class IOHandler implements IIOHandler {
+    +start()
+    +stop()
+    +on_button_press(name)
+    +connect(uri)
+    +send(event)
+    +on_message(callback)
+}
+
+interface IButtonInput {
+    +on_button_press(name)
+    +listen()
+}
+
+class ButtonHandler implements IButtonInput {
+    +on_button_press(name)
+    +listen()
+}
+
+IButtonInput <|.. ButtonHandler
+IButtonInput --> IOHandler : calls on_button_press(name)
+
+' === replaced WebSocket with DataCommunicator.WebSocketConnection ===
+class WebSocketConnection {
+    +connect(uri)
+    +start()
+    +stop()
+    +subscribe(topic)
+    +send(recipient, data)
+    +broadcast(data)
+    +on_message(callback)
+}
+
+class DisplayController {
+    -display : IDisplay
+    -override_data
+    -override_timestamp
+
+    +start()
+    +stop()
+    +run()
+    +on_message(frm, payload)
+    +update_display(data)
+    +set_display(display : IDisplay)
+    +draw()
+}
+
+WebSocketConnection --> DisplayController : invokes on_message()
+
+DisplayController --> IDisplay : renders to
+HDMIDisplay ..|> IDisplay
+PiTFTDisplay ..|> IDisplay
+
+IOHandler ..|> IIOHandler
+IOHandler --> WebSocketConnection : emits events
+WebSocketConnection --> IOHandler : receives control/display messages
+
+abstract class State {
+    +on_entry(handler)
+    +on_tick(handler)
+    +on_button(handler, name)
+}
+
+class IdleState
+class LoadingState
+class PredictingState
+class VentilatingState
+class PausedState
+class CancelledState
+
+State <|-- IdleState
+State <|-- LoadingState
+State <|-- PredictingState
+State <|-- VentilatingState
+State <|-- PausedState
+State <|-- CancelledState
+
+IOHandler --> State
+
+class SensorServiceMonitor {
+    +is_sensor_active() : bool
+}
+
+DisplayController --> SensorServiceMonitor : checks service status
+
+class OdourRecognizer {
+    +on_start()
+    +on_pause()
+    +on_cancel()
+    +on_sensor_data()
+}
+
+WebSocketConnection --> OdourRecognizer : dispatches input
+OdourRecognizer --> WebSocketConnection : emits prediction, display
+@enduml

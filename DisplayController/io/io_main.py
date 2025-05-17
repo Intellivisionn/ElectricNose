@@ -1,4 +1,3 @@
-# DisplayController/io/io_main.py
 import asyncio
 import sys, os
 # insert project root (one level up from DisplayController/source) onto PYTHONPATH

@@ -1,5 +1,3 @@
-# DisplayController/io/io_input_handler.py
-
 import os
 import sys
 import threading
