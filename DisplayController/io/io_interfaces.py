@@ -1,4 +1,3 @@
-# DisplayController/io/io_main.py
 from abc import ABC, abstractmethod
 
 class IIOHandler(ABC):
