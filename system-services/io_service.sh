@@ -2,8 +2,8 @@
 
 # Define paths
 REPO_DIR="/home/admin/ElectricNose"
-VENV_DIR="$REPO_DIR/DataCommunicator/venv/bin/activate"
-LOG_FILE="$REPO_DIR/communicator.log"
+VENV_DIR="$REPO_DIR/DisplayController/venv/bin/activate"
+LOG_FILE="$REPO_DIR/iohandler.log"
 
 # Activate the Python environment
 if [ -f "$VENV_DIR" ]; then
@@ -14,9 +14,9 @@ else
 fi
 
 # Install dependencies
-pip install -r "$REPO_DIR/DataCommunicator/requirements.txt"
+pip install -r "$REPO_DIR/DisplayController/requirements.txt"
 
 # Run the Python script
 echo "$(date): Starting Python script..."
 cd "$REPO_DIR"
-python3 -m DataCommunicator.source.MessageBrokerServer
+python3 -m DisplayController.io.io-main
