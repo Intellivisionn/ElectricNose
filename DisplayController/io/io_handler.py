@@ -69,8 +69,6 @@ class IOHandler(BaseDataClient, IIOHandler):
 
     @log_call
     async def run(self):
-        # subscribe to control commands
-        await self.connection.subscribe("control")
         # subscribe to prediction events
         await self.connection.subscribe("prediction")
 
