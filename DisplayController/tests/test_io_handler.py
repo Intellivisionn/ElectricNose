@@ -47,7 +47,7 @@ async def test_run_and_button_and_prediction(io_handler, monkeypatch):
     # start run → subscribes and enters IdleState
     task = asyncio.create_task(io_handler.run())
     await asyncio.sleep(0)  # allow subscribe
-    assert "control" in io_handler.connection.subs
+    assert "prediction" in io_handler.connection.subs
     # simulate a state change to PredictingState
     from DisplayController.io.state_machine import PredictingState
     io_handler.change_state(PredictingState())
@@ -96,7 +96,7 @@ async def test_connect_and_stop(monkeypatch):
     # call start (which calls connect & subscribe)
     await handler.start()
     assert "connected" in sent
-    assert "sub:control" in sent
+    assert "sub:prediction" in sent
 
 @pytest.mark.asyncio
 async def test_send_payload_error(monkeypatch):
