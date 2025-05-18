@@ -3,6 +3,7 @@ import time
 import pytest
 from unittest.mock import MagicMock
 from DisplayController.io.io_handler import IOHandler
+import types
 
 class DummyConn:
     def __init__(self):
@@ -75,3 +76,40 @@ async def test_change_state_and_heartbeat(io_handler):
     io_handler.change_state(VentilatingState())
     # should schedule a send state
     assert any("topic:state" in call[0][0] for call in io_handler.connection.send.call_args_list)
+
+
+@pytest.mark.asyncio
+async def test_connect_and_stop(monkeypatch):
+    # stub out underlying connection
+    sent = []
+    class C:
+        def __init__(self): self.client=None
+        def set_client(self, c): self.client=c
+        async def connect(self): sent.append("connected")
+        async def subscribe(self,t): sent.append(f"sub:{t}")
+        async def send(self, t,p): sent.append(f"send:{t}")
+    handler = IOHandler("n", C(), MagicMock(), use_hdmi=False, loading_duration=1, ventilation_duration=1, keepalive=0.1)
+    async def fake_loop():
+        # simulates the background loop
+        return
+    handler._loop = fake_loop
+    # call start (which calls connect & subscribe)
+    await handler.start()
+    assert "connected" in sent
+    assert "sub:control" in sent
+
+@pytest.mark.asyncio
+async def test_send_payload_error(monkeypatch):
+    # simulate event_loop closed
+    class C:
+        def set_client(self,c): pass
+        async def connect(self): pass
+        async def subscribe(self,t): pass
+        async def send(self,t,p): pass
+    h = IOHandler("x", C(), MagicMock(), use_hdmi=False, loading_duration=1, ventilation_duration=1, keepalive=0.1)
+    # simulate call_soon_threadsafe failing
+    h._event_loop = types.SimpleNamespace(
+        call_soon_threadsafe=lambda *a, **k: (_ for _ in ()).throw(RuntimeError("closed"))
+    )
+    # should catch & swallow
+    h._send_payload({"a":1})
