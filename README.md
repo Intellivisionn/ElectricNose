@@ -1,6 +1,6 @@
 # ElectricNose System
 
-The **ElectricNose** project is a full-stack sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
+The **ElectricNose** project is a sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
 
 It consists of these components:
 
