@@ -1,5 +1,4 @@
 import sys
-import os
 import threading
 import time
 import asyncio
@@ -27,11 +26,6 @@ class SensorDataCollector:
         else:
             self.scent_name = "test_scent"
 
-        # prepare JSON output path
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        os.makedirs(output_dir, exist_ok=True)
-        self.json_file = os.path.join(output_dir, f"{self.scent_name}_{ts}.json")
-
         # websocket receiver
         uri = 'ws://localhost:8765'
         self.ws_conn = WebSocketConnection(uri)
@@ -50,11 +44,11 @@ class SensorDataCollector:
 
         # 2) Only JSONStorage for now
         storages = [
-            JSONStorage(self.json_file),
+            JSONStorage(),
             # CSVStorage(...)       # ← can plug in later
             # CloudStorage(...)     # ← can plug in later
         ]
-        storage_mgr = StorageManager(storages, data_source=self, interval=write_interval)
+        storage_mgr = StorageManager(storages, data_source=self, interval=write_interval, scent_name = self.scent_name)
         storage_mgr.start()
 
         # 3) keep main alive

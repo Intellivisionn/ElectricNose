@@ -8,3 +8,7 @@ class CloudStorage(IStorage):
     def write(self, data: list) -> None:
         # TODO: upload data to cloud storage
         raise NotImplementedError("CloudStorage not yet implemented")
+
+    def set_filename(self, scent_name) -> None:
+        # TODO: set filename
+        raise NotImplementedError("CloudStorage not yet implemented")

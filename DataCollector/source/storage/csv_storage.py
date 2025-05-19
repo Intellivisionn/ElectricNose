@@ -8,3 +8,7 @@ class CSVStorage(IStorage):
     def write(self, data: list) -> None:
         # TODO: write data to CSV
         raise NotImplementedError("CSVStorage not yet implemented")
+
+    def set_filename(self, scent_name) -> None:
+        # TODO: set filename
+        raise NotImplementedError("CSVStorage not yet implemented")
