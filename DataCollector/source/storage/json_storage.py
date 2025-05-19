@@ -1,5 +1,5 @@
 import os, json
-from .istorage import IStorage
+from DataCollector.source.storage.istorage import IStorage
 
 class JSONStorage(IStorage):
     def __init__(self, output_file: str):

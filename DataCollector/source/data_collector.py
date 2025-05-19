@@ -8,8 +8,8 @@ from datetime import datetime
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 from DataCommunicator.source.BaseDataClient   import BaseDataClient
 
-from storage.json_storage import JSONStorage
-from storage_manager import StorageManager
+from DataCollector.source.storage.json_storage import JSONStorage
+from DataCollector.source.storage_manager import StorageManager
 
 
 

@@ -1,4 +1,4 @@
-from .istorage import IStorage
+from DataCollector.source.storage.istorage import IStorage
 
 class CSVStorage(IStorage):
     def __init__(self, output_file: str):

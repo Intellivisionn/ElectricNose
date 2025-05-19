@@ -1,4 +1,4 @@
-from .istorage import IStorage
+from DataCollector.source.storage.istorage import IStorage
 
 class CloudStorage(IStorage):
     def __init__(self, bucket_name: str):
