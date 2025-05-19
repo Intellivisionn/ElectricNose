@@ -1,0 +1,85 @@
+@startuml
+title SensorDataCollector - Refactored Class Diagram
+
+' === Interfaces ===
+interface IStorage {
+    +write(data: list): void
+    +set_filename(scent_name: str): void
+}
+
+' === Concrete Storage Implementations ===
+class JSONStorage {
+    -output_file: str
+    -output_dir: str
+    +write(data: list): void
+    +set_filename(scent_name: str): void
+}
+
+class CSVStorage {
+    -output_file: str
+    +write(data: list): void
+    +set_filename(scent_name: str): void
+}
+
+class CloudStorage {
+    -bucket_name: str
+    +write(data: list): void
+    +set_filename(scent_name: str): void
+}
+
+' === Core Components ===
+class SensorDataCollector {
+    -sensor_data_list: list
+    -data_lock: Lock
+    -stop_event: Event
+    -scent_name: str
+    -ws_conn: WebSocketConnection
+    -receiver: _ReceiverClient
+
+    +__init__(scent_name: str, output_dir: str)
+    +start(write_interval: float): void
+}
+
+class StorageManager {
+    -storages: list
+    -data_source: SensorDataCollector
+    -interval: float
+    -scent_name: str
+
+    +__init__(storages: list, data_source, interval: float, scent_name: str)
+    +run(): void
+    +set_all_filenames(scent_name: str): void
+}
+
+class _ReceiverClient {
+    -collector: SensorDataCollector
+
+    +__init__(collector)
+    +run(): void
+    +on_message(frm: str, payload: dict): void
+}
+
+' === External ===
+class WebSocketConnection {
+    +set_client(client): void
+    +connect(): void
+}
+
+class BaseDataClient {
+    +start(): void
+}
+
+' === Relationships ===
+SensorDataCollector --> WebSocketConnection
+SensorDataCollector --> _ReceiverClient
+SensorDataCollector --> StorageManager
+_ReceiverClient --|> BaseDataClient
+
+StorageManager --> SensorDataCollector
+StorageManager --> IStorage
+
+JSONStorage ..|> IStorage
+CSVStorage ..|> IStorage
+CloudStorage ..|> IStorage
+
+@enduml
