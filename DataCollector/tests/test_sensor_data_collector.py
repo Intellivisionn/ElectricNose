@@ -17,26 +17,30 @@ def temp_output_dir(tmp_path):
     return tmp_path
 
 
-def test_collector_initialization_creates_file_path(temp_output_dir):
-    collector = SensorDataCollector(scent_name="peach", output_dir=str(temp_output_dir))
-    assert collector.scent_name == "peach"
-    assert os.path.basename(collector.json_file).startswith("peach_")
-    assert os.path.dirname(collector.json_file) == str(temp_output_dir)
+def test_JSONStorage_initialization_creates_file_path(temp_output_dir):
+    storage = JSONStorage(output_dir=str(temp_output_dir))
+    storage.set_filename("peach")
+
+    output_file = storage.output_file
+
+    assert os.path.basename(output_file).startswith("peach_")
+    assert output_file.endswith(".json")
+    assert os.path.dirname(output_file) == str(temp_output_dir)
 
 
 def test_constructor_prompts_when_no_scent(monkeypatch, tmp_path):
     monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
     monkeypatch.setattr("builtins.input", lambda _: "mango")
 
-    collector = SensorDataCollector(scent_name=None, output_dir=str(tmp_path))
+    collector = SensorDataCollector(scent_name=None)
     assert collector.scent_name == "mango"
-    assert "mango" in collector.json_file
 
 
-def test_json_storage_writes_correctly(temp_output_dir):
+
+def test_json_storage_writes_correctly(temp_output_dir, monkeypatch):
     file_path = temp_output_dir / "output.json"
     storage = JSONStorage(str(file_path))
-
+    storage.output_file = str(file_path)
     data = [{"sensor": "mock", "value": 42}]
     storage.write(data)
 
@@ -62,10 +66,13 @@ def test_storage_manager_writes_from_datasource(temp_output_dir):
         def write(self, data):
             self.written.append(data)
 
+        def set_filename(self, *args, **kwargs):
+            pass
+
     collector = DummyCollector()
     storage = DummyStorage()
 
-    manager = StorageManager([storage], data_source=collector, interval=0.1)
+    manager = StorageManager([storage], data_source=collector, interval=0.1, scent_name="test")
 
     def stop_soon():
         time.sleep(0.2)
@@ -80,7 +87,7 @@ def test_storage_manager_writes_from_datasource(temp_output_dir):
 
 
 def test_receiver_client_appends_data():
-    collector = SensorDataCollector(scent_name="test", output_dir=".")
+    collector = SensorDataCollector(scent_name="test")
     receiver = collector._ReceiverClient(collector)
 
     payload = {"sensor": "humidity", "value": 55}
@@ -98,7 +105,7 @@ def test_start_handles_keyboard_interrupt(monkeypatch, tmp_path, capfd):
         async def start(self): pass
 
     # Patch receiver with dummy
-    collector = SensorDataCollector(scent_name="banana", output_dir=str(tmp_path))
+    collector = SensorDataCollector(scent_name="banana")
     collector.receiver = DummyReceiver()
 
     # Patch StorageManager to track calls

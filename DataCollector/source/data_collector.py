@@ -13,7 +13,7 @@ from DataCollector.source.storage_manager import StorageManager
 
 
 class SensorDataCollector:
-    def __init__(self, scent_name: str = None, output_dir: str = "savedData"):
+    def __init__(self, scent_name: str = None):
         self.sensor_data_list = []
         self.data_lock       = threading.Lock()
         self.stop_event      = threading.Event()
