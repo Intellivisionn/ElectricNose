@@ -80,7 +80,7 @@ class BasePygameDisplay(IDisplay):
                 "driver": "fbcon",
                 "env": {
                     "SDL_VIDEODRIVER": "fbcon",
-                    "SDL_FBDEV": "/dev/fb0"
+                    "SDL_FBDEV": "/dev/fb1"
                 }
             },
             {
@@ -247,7 +247,7 @@ class BasePygameDisplay(IDisplay):
 class PiTFTDisplay(BasePygameDisplay):
     def __init__(self):
         super().__init__()
-        self.fb_device = "/dev/fb0"
+        self.fb_device = "/dev/fb1"
 
     @log_call
     def start(self):
