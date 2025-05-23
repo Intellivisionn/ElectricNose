@@ -7,6 +7,7 @@ from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 class CommStorage(IStorage):
     def __init__(self, ws_uri: str = "ws://localhost:8765"):
         self.ws_connection = WebSocketConnection(ws_uri)
+        super().__init__('data_collector', self.ws_connection)
         self.sensor_data_list = []
         self.data_length_to_send = 5
 
