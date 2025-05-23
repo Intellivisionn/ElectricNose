@@ -1,3 +1,46 @@
+#  Example
+
+This is a example demonstrating how to use a WebSocket-based message broker system in a fake, simulating sensor data transmission and collection.
+
+## Overview
+
+The code below defines two clients:
+
+- **SensorReaderClient**: 
+  - Simulates a sensor that generates random readings.
+  - Sends data to a topic and directly to another client.
+  - Responds to control commands.
+
+- **DataCollectorClient**:
+  - Listens to a topic and collects data from sensors.
+  - Occasionally sends control commands back.
+
+Both clients use:
+- `WebSocketConnection` — a WebSocket-based connection to the broker.
+- `BaseDataClient` — a base class that manages the client lifecycle and handles incoming messages.
+
+## Usage
+
+### 1. Start the DataCommunicator
+
+The DataCommunicator BrokerServer needs to be running.
+
+### 2. Run the script
+
+```bash
+python your_script.py
+```
+
+This will start both the **sensor** and **collector** clients and connect them to the broker at:
+
+```
+ws://localhost:8765
+```
+so it is expected that the DataCommunicator is running
+
+## Full Example Code
+
+```python
 import asyncio
 import random
 
@@ -26,10 +69,8 @@ class SensorReaderClient(BaseDataClient):
 
     async def on_message(self, frm, payload):
         print(f'[{self.name}] Received from {frm}: {payload}')
-        # You could act on a control message like:
         if payload.get('cmd') == 'adjust':
             print(f'[{self.name}] Adjusting sensor config...')
-
 
 class DataCollectorClient(BaseDataClient):
     async def run(self):
@@ -40,25 +81,20 @@ class DataCollectorClient(BaseDataClient):
 
     async def on_message(self, frm, payload):
         print(f'[{self.name}] Collected from {frm}: {payload}')
-        # Optionally send control command back via topic
         if random.random() < 0.1:
             command = {'cmd': 'adjust'}
             print(f'[{self.name}] Sending control: {command}')
             await self.connection.send('topic:sensor_commands', command)
 
-
 async def main():
     uri = 'ws://localhost:8765'
 
-    # set up collector
     coll_conn = WebSocketConnection(uri)
     collector = DataCollectorClient('collector', coll_conn)
 
-    # set up sensor
     sensor_conn = WebSocketConnection(uri)
     sensor = SensorReaderClient('sensors', sensor_conn)
 
-    # run both clients concurrently
     await asyncio.gather(
         collector.start(),
         sensor.start(),
@@ -66,3 +102,4 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+```

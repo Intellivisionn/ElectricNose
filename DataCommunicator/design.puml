@@ -1,0 +1,63 @@
+@startuml
+skinparam classAttributeIconSize 0
+title Data Communication
+
+' Interfaces
+interface IDataConnection {
+    +connect()
+    +send(to, payload)
+    +broadcast(payload)
+    +subscribe(topic)
+    +unsubscribe(topic)
+    +set_client(client)
+}
+
+' Implementations
+class WebSocketConnection {
+    -uri : str
+    -ws
+    -client
+    +connect()
+    +send(to, payload)
+    +broadcast(payload)
+    +subscribe(topic)
+    +unsubscribe(topic)
+    +set_client(client)
+    -_listen()
+}
+
+IDataConnection <|.. WebSocketConnection
+
+abstract class BaseDataClient {
+    -name : str
+    -connection : IDataConnection
+    +start()
+    +run()
+    +on_message(frm, payload)
+}
+
+WebSocketConnection --> BaseDataClient : delegates message
+BaseDataClient --> IDataConnection : uses
+
+class MessageBrokerServer {
+    -host : str
+    -port : int
+    -topics : dict[str, set[str]]
+    -connections : dict[str, WebSocket]
+    +start()
+    -_serve()
+    -handler()
+    -route()
+    -broadcast()
+    -publish()
+}
+
+' Example subclass of BaseDataClient
+class SensorReaderClient {
+    +run()
+    +on_message(frm, payload)
+}
+
+BaseDataClient <|-- SensorReaderClient
+SensorReaderClient --> WebSocketConnection : via BaseDataClient
+@enduml

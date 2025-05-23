@@ -1,17 +1,16 @@
 [Unit]
-Description=Electric Nose Sensor Display
-After=multi-user.target
-StartLimitIntervalSec=500
-StartLimitBurst=5
+Description=DisplayController Service
+After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/admin/ElectricNose/DisplayController/source/main.py
-Restart=on-failure
-RestartSec=10
 User=admin
 WorkingDirectory=/home/admin/ElectricNose/DisplayController
-StandardOutput=append:/var/log/display.log
-StandardError=append:/var/log/display.log
+Environment=PYTHONPATH=/home/admin/ElectricNose
+ExecStart=/usr/bin/python3 /home/admin/ElectricNose/DisplayController/display/display_main.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/display_service.log
+StandardError=append:/var/log/display_service.log
 
 [Install]
 WantedBy=multi-user.target
