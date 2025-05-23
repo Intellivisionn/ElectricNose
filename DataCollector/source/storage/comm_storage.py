@@ -1,4 +1,5 @@
 import asyncio
+import threading
 from datetime import datetime
 from DataCollector.source.storage.istorage import IStorage
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
@@ -6,9 +7,16 @@ from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 class CommStorage(IStorage):
     def __init__(self, ws_uri: str = "ws://localhost:8765"):
         self.ws_connection = WebSocketConnection(ws_uri)
-        self.loop = asyncio.get_event_loop()
         self.sensor_data_list = []
         self.data_length_to_send = 5
+
+        self.loop = asyncio.new_event_loop()
+        self.loop_thread = threading.Thread(target=self._start_loop, daemon=True)
+        self.loop_thread.start()
+
+    def _start_loop(self):
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
 
     async def connect(self):
         """Initialize WebSocket connection"""
