@@ -89,16 +89,26 @@ def test_base_pygame_wrap_and_fallback(monkeypatch):
     assert d.check_connection() is False
 
 def test_pitft_and_hdmi_display_check(monkeypatch, tmp_path):
-    # PiTFTDisplay: if /dev/fb0 exists
-    fb = tmp_path / "fb0"
-    fb.write_text("") 
-    monkeypatch.setenv("SDL_FBDEV", str(fb))
-    # stub the base class to always say “connected”
+    # Create mock devices
+    drm_path = "/dev/dri/card2"  # The exact path we check in PiTFTDisplay
+    fb_path = "/dev/fb0"         # The exact framebuffer path
+    
+    # Mock os.path.exists to return True for our devices
+    def mock_exists(path):
+        return path in [drm_path, fb_path]
+    monkeypatch.setattr(os.path, "exists", mock_exists)
+    
+    # Mock os.access directly (not os.access.access)
+    monkeypatch.setattr(os, "access", lambda p, m: True)
+    
+    # Stub the base class to always say "connected"
     monkeypatch.setattr(BasePygameDisplay, "check_connection", lambda self: True)
+    
+    # Test PiTFT
     pit = PiTFTDisplay()
     assert pit.check_connection() is True
 
-    # HDMIDisplay: stub HDMIStatusChecker directly
+    # HDMIDisplay test
     monkeypatch.setattr(HDMIStatusChecker, "is_connected", lambda: True)
     hd = HDMIDisplay()
     assert hd.check_connection() is True
