@@ -55,82 +55,19 @@ class BasePygameDisplay(IDisplay):
 
     @log_call
     def start(self):
-        # 1) silence ALSA
-        os.environ["SDL_AUDIODRIVER"] = "dummy"
-
-        # 2) switch to console 7 and set framebuffer depth
         print("Starting display...")
         try:
-            os.system("chvt 7")
-            os.system("fbset -depth 32 && fbset -depth 16")
-        except Exception:
-            pass
-
-        # 3) Try KMS/DRM first for ILI9341
-        pygame.display.quit()
-        drivers_to_try = [
-            {
-                "driver": "kmsdrm",
-                "env": {
-                    "SDL_VIDEODRIVER": "kmsdrm",
-                    "SDL_KMSDRM_DEVICE_INDEX": "1"
-                }
-            },
-            {
-                "driver": "fbcon",
-                "env": {
-                    "SDL_VIDEODRIVER": "fbcon",
-                    "SDL_FBDEV": "/dev/fb1"
-                }
-            },
-            {
-                "driver": "directfb",
-                "env": {
-                    "SDL_VIDEODRIVER": "directfb"
-                }
-            },
-            {
-                "driver": "x11",
-                "env": {
-                    "SDL_VIDEODRIVER": "x11"
-                }
-            }
-        ]
-
-        for driver in drivers_to_try:
-            # Clear previous environment variables
-            for key in ["SDL_VIDEODRIVER", "SDL_KMSDRM_DEVICE_INDEX", "SDL_FBDEV"]:
-                os.environ.pop(key, None)
+            pygame.display.quit()
+            pygame.display.init()
+            pygame.font.init()
+            pygame.init()
             
-            # Set new environment variables
-            for key, value in driver["env"].items():
-                os.environ[key] = value
-
-            try:
-                pygame.display.init()
-                print(f"Successfully initialized {driver['driver']}")
-                break
-            except pygame.error as e:
-                print(f"Failed to initialize {driver['driver']}: {e}")
-        else:
-            raise RuntimeError("No SDL video driver initialized successfully")
-
-        # 4) now finish pygame init and open fullscreen
-        pygame.init()                # init remaining modules (after display)
-        pygame.mouse.set_visible(False)
-        
-        # Get the current display info
-        info = pygame.display.Info()
-        if info.current_w > 0 and info.current_h > 0:
-            width, height = info.current_w, info.current_h
-        else:
-            width, height = 320, 240  # Default for ILI9341
+            # Create display
+            self.screen = pygame.display.set_mode((320, 240))
+            pygame.mouse.set_visible(False)
             
-        try:
-            self.screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
-        except pygame.error:
-            # Fallback to windowed mode if fullscreen fails
-            self.screen = pygame.display.set_mode((width, height))
+        except Exception as e:
+            raise RuntimeError(f"Display initialization failed: {e}")
 
     @log_call
     def stop(self):
@@ -248,16 +185,38 @@ class PiTFTDisplay(BasePygameDisplay):
     def __init__(self):
         super().__init__()
         self.fb_device = "/dev/fb1"
+        # Set KMS/DRM environment variables at init
+        os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
+        os.environ["SDL_KMSDRM_DEVICE_INDEX"] = "2"  # Use V3D card
+        os.environ["SDL_AUDIODRIVER"] = "dummy"
 
     @log_call
     def start(self):
-        os.environ["SDL_FBDEV"] = self.fb_device
-        super().start()
+        print("Starting display...")
+        try:
+            pygame.display.quit()
+            pygame.display.init()
+            pygame.font.init()
+            pygame.init()
+            
+            # Create display with specific size
+            self.screen = pygame.display.set_mode((320, 240))
+            pygame.mouse.set_visible(False)
+            
+            # Test pattern
+            self.screen.fill((255, 0, 0))  # Red
+            pygame.display.flip()
+            
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize PiTFT display: {e}")
     
     @log_call
     def check_connection(self) -> bool:
-        # Also ensure the framebuffer device still exists on disk
-        return os.path.exists(self.fb_device) and super().check_connection()
+        # Check both DRM device and display status
+        drm_device = "/dev/dri/card1"  # V3D card
+        return (os.path.exists(drm_device) and 
+                os.access(drm_device, os.R_OK | os.W_OK) and 
+                super().check_connection())
 
 class HDMIDisplay(BasePygameDisplay):
     @log_call
