@@ -2,9 +2,10 @@ import asyncio
 import threading
 from datetime import datetime
 from DataCollector.source.storage.istorage import IStorage
+from DataCommunicator.source.BaseDataClient import BaseDataClient
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 
-class CommStorage(IStorage):
+class CommStorage(IStorage, BaseDataClient):
     def __init__(self, ws_uri: str = "ws://localhost:8765"):
         self.ws_connection = WebSocketConnection(ws_uri)
         super().__init__('data_collector', self.ws_connection)
@@ -43,4 +44,10 @@ class CommStorage(IStorage):
 
     def set_filename(self, scent_name) -> None:
         # Not needed for WebSocket communication
+        pass
+
+    def run(self) -> None:
+        pass
+
+    def on_message(self, frm: str, payload: dict):
         pass
