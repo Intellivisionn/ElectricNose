@@ -8,7 +8,7 @@ class CommStorage(IStorage):
         self.ws_connection = WebSocketConnection(ws_uri)
         self.loop = asyncio.get_event_loop()
         self.sensor_data_list = []
-        self.data_length_to_send = 90
+        self.data_length_to_send = 5
 
     async def connect(self):
         """Initialize WebSocket connection"""
