@@ -12,6 +12,7 @@ class CommStorage(IStorage):
 
     async def connect(self):
         """Initialize WebSocket connection"""
+        print("[CommStorage] connect() called")
         await self.ws_connection.connect()
         print("[CommStorage] WebSocket connected")
 
