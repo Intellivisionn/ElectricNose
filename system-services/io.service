@@ -1,5 +1,5 @@
 [Unit]
-Description=Sensor Reader Service
+Description=IOHandler Service
 After=network.target
 
 [Service]

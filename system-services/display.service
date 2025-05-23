@@ -1,11 +1,12 @@
 [Unit]
-Description=Sensor Reader Service
+Description=DisplayController Service
 After=network.target
 
 [Service]
 User=admin
 WorkingDirectory=/home/admin/ElectricNose/DisplayController
-ExecStart=/bin/bash /home/admin/ElectricNose/system-services/display_service.sh
+Environment=PYTHONPATH=/home/admin/ElectricNose
+ExecStart=/usr/bin/python3 /home/admin/ElectricNose/DisplayController/display/display_main.py
 Restart=always
 RestartSec=5
 StandardOutput=append:/var/log/display_service.log

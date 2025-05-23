@@ -1,6 +1,11 @@
 import os
 import pygame
 
+print("SDL Library Path:", os.environ.get('LD_LIBRARY_PATH'))
+print("Current SDL_VIDEODRIVER:", os.environ.get('SDL_VIDEODRIVER'))
+print("FB Device exists:", os.path.exists('/dev/fb0'))
+print("FB Device permissions:", os.popen('ls -l /dev/fb0').read().strip())
+
 drivers = [
     "fbcon",
     "rpi",
