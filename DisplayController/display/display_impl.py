@@ -185,6 +185,7 @@ class PiTFTDisplay(BasePygameDisplay):
     def __init__(self):
         super().__init__()
         self.fb_device = "/dev/fb1"
+        self.drm_device = "/dev/dri/card2"  # ILI9341 card
         # Set KMS/DRM environment variables at init
         os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
         os.environ["SDL_KMSDRM_DEVICE_INDEX"] = "2"  # Use V3D card
@@ -212,10 +213,9 @@ class PiTFTDisplay(BasePygameDisplay):
     
     @log_call
     def check_connection(self) -> bool:
-        # Check both DRM device and display status
-        drm_device = "/dev/dri/card1"  # V3D card
-        return (os.path.exists(drm_device) and 
-                os.access(drm_device, os.R_OK | os.W_OK) and 
+        # Check either DRM or framebuffer is available
+        return ((os.path.exists(self.drm_device) or 
+                os.path.exists(self.fb_device)) and 
                 super().check_connection())
 
 class HDMIDisplay(BasePygameDisplay):
