@@ -30,7 +30,7 @@ class IOHandler(BaseDataClient, IIOHandler):
         connection: WebSocketConnection,
         button_input: IButtonInput,
         use_hdmi: bool = False,
-        loading_duration: float = 185.0,
+        loading_duration: float = 250.0,
         ventilation_duration: float = 300.0,
         keepalive: float = 10.0
     ):
