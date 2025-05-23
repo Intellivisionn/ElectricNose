@@ -30,9 +30,9 @@ class IOHandler(BaseDataClient, IIOHandler):
         connection: WebSocketConnection,
         button_input: IButtonInput,
         use_hdmi: bool = False,
-        loading_duration: float = 5.0,
+        loading_duration: float = 185.0,
         ventilation_duration: float = 300.0,
-        keepalive: float = 5.0
+        keepalive: float = 10.0
     ):
         super().__init__(name, connection)
         self._button_input        = button_input
