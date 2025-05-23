@@ -7,6 +7,10 @@ import sys
 import asyncio
 import random
 
+from DataCollector.source.data_collector import SensorDataCollector
+from OdourRecognizer.src.OdourRecognition import loadData
+from OdourRecognizer.src.recognizers.RecognizerManager import RecognizerManager
+
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
@@ -57,23 +61,25 @@ class Predictor(BaseDataClient):
 
             # PHASE 1: “unsure” for 5s
             t0 = loop.time()
-            while loop.time() - t0 < 5.0:
+            collector = SensorDataCollector()
+            collector.start()
+            while loop.time() - t0 < 180.0:
                 await self.connection.send(
                     "topic:prediction",
-                    {"scent": "unsure", "confidence": 0.0}
+                    {"scent": "loading", "confidence": "loading"}
                 )
                 await asyncio.sleep(0.5)
 
             # PHASE 2: random for 10s
-            t1 = loop.time()
-            while loop.time() - t1 < 10.0:
-                scent = random.choice(SCENTS)
-                conf  = random.random()
-                await self.connection.send(
-                    "topic:prediction",
-                    {"scent": scent, "confidence": conf}
-                )
-                await asyncio.sleep(0.5)
+
+            recognizer = RecognizerManager(models_folder_path="models")
+            data = loadData("whasever")
+            best_result = recognizer.recognize_best(data)
+            await self.connection.send(
+                "topic:prediction",
+                {"scent": best_result['prediction'], "confidence": f"{best_result['confidence']:.2f}"}
+            )
+            await asyncio.sleep(0.5)
 
             print("[predictor] prediction phase complete — waiting for next PredictingState")
 
