@@ -86,3 +86,4 @@ sudo cp system-services/display.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable display
 sudo systemctl start display
+>>>>>>> main

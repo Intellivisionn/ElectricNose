@@ -1,6 +1,6 @@
 #  Example
 
-This is a example demonstrating how to use a WebSocket-based message broker system in a fake, simulating sensor data transmission and collection.
+This is an example demonstrating how to use a WebSocket-based message broker system in a fake, simulating sensor data transmission and collection.
 
 ## Overview
 
