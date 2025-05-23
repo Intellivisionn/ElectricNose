@@ -18,7 +18,7 @@ class Predictor(BaseDataClient):
         super().__init__('predictor', WebSocketConnection(uri))
         self._state_q: asyncio.Queue[str] = asyncio.Queue()
 
-    def loadData(file_path) -> list[float]:
+    def prepareData(file_path) -> list[float]:
         with open(file_path, 'r') as data_file:
             data = json.load(data_file)
 
@@ -93,7 +93,6 @@ class Predictor(BaseDataClient):
 
             print("[predictor] entering prediction phase")
 
-            # PHASE 1: “unsure” for 5s
             t0 = loop.time()
             collector = SensorDataCollector()
             collector.start()
@@ -104,10 +103,8 @@ class Predictor(BaseDataClient):
                 )
                 await asyncio.sleep(0.5)
 
-            # PHASE 2: random for 10s
-
             recognizer = RecognizerManager(models_folder_path="models")
-            data = self.loadData("test.json")
+            data = self.prepareData("test.json")
             result = recognizer.recognize(data)
             await self.connection.send(
                 "topic:prediction",
