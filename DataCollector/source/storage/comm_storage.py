@@ -8,19 +8,28 @@ class CommStorage(IStorage):
         self.ws_connection = WebSocketConnection(ws_uri)
         self.loop = asyncio.get_event_loop()
         self.sensor_data_list = []
-        self.data_lenght_to_send = 90
+        self.data_length_to_send = 90
 
     async def connect(self):
         """Initialize WebSocket connection"""
         await self.ws_connection.connect()
         print("[CommStorage] WebSocket connected")
 
+    async def send_data(self):
+        await self.connect()
+        await self.ws_connection.send("topic:complete_data", self.sensor_data_list)
+        print("[CommStorage] Data sent via WebSocket")
+
     def write(self, data: list) -> None:
         self.sensor_data_list = data
         print(f"[CommStorage] {len(self.sensor_data_list)} elements stored to list")
-        if len(self.sensor_data_list) >= self.data_lenght_to_send:
-            self.connect()
-            self.ws_connection.send("topic:complete_data", self.sensor_data_list)
+        if len(self.sensor_data_list) >= self.data_length_to_send:
+            future = asyncio.run_coroutine_threadsafe(self.send_data(), self.loop)
+            try:
+                future.result()  # Optional: can omit if you don't want to block
+            except Exception as e:
+                print(f"[CommStorage] Error sending data: {e}")
+
 
     def set_filename(self, scent_name) -> None:
         # Not needed for WebSocket communication
