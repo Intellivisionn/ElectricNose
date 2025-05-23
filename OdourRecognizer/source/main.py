@@ -4,6 +4,7 @@ import sys
 import asyncio
 import numpy as np
 from datetime import datetime
+import threading
 
 import concurrent.futures
 from functools import partial   
@@ -184,8 +185,8 @@ class Predictor(BaseDataClient):
                                     break
                                 await self.connection.send(
                                     "topic:prediction",
-                                    {"scent": prediction_result[0], "confidence": f"{prediction_result[1]:.2f"}
-                                )
+                                        {"scent": prediction_result[0], "confidence": f"{prediction_result[1]:.2f}"}
+                                    )
                                 await asyncio.sleep(0.5)
                             print(f"[predictor] prediction complete: {prediction_result}")
 
