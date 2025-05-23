@@ -4,7 +4,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
-from io_handler import IOHandler
+from DisplayController.io.io_handler import IOHandler
 from DisplayController.io.io_input_handler import ButtonHandler
 
 BUTTON_PINS = {
