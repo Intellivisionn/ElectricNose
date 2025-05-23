@@ -14,9 +14,11 @@ from DataCommunicator.source.BaseDataClient import BaseDataClient
 
 class Predictor(BaseDataClient):
     def __init__(self, uri: str):
-        # build the WS client but don’t connect yet
+        # build the WS client but don't connect yet
         super().__init__('predictor', WebSocketConnection(uri))
         self._state_q: asyncio.Queue[str] = asyncio.Queue()
+        self._data_q: asyncio.Queue[dict] = asyncio.Queue() 
+        self.prediction_active = False
 
     def prepareData(self, data: list) -> list[float]:
         # Modified to accept dict instead of file path
@@ -73,13 +75,13 @@ class Predictor(BaseDataClient):
         while True:
             await asyncio.sleep(1)
 
-    async def on_message(self, topic: str, payload: dict):
-        if topic == "state":
+    async def on_message(self, frm: str, payload: dict):
+        if frm == 'io':  # State messages from io
             state = payload.get("state")
             if state:
                 print(f"[predictor] got state → {state}")
                 await self._state_q.put(state)
-        elif topic == "completedata":
+        elif frm == 'collector':  # Complete data from collector
             if self.prediction_active:
                 print("[predictor] received complete data")
                 await self._data_q.put(payload)
