@@ -123,18 +123,13 @@ class Predictor(BaseDataClient):
                 print(f"[Collector] Received from {frm}: {payload}")
                 print(f"[Collector] Data length: {len(self.data)}")
 
+
     async def _prediction_loop(self):
+        loop = asyncio.get_event_loop()
         while True:
             try:
-                # Wait for state change
+                # Wait for PredictingState
                 state = await self._state_q.get()
-                
-                if state == "LoadingState":
-                    print("[predictor] in loading state, clearing data")
-                    self.data = []
-                    self.prediction_active = False
-                    continue
-                    
                 if state != "PredictingState":
                     continue
 
@@ -143,78 +138,77 @@ class Predictor(BaseDataClient):
 
                 try:
                     data = self.data
-                    
-                    print(f"[predictor] processing data (collected {len(data)} samples)")
                     models_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
                     
                     if not os.path.exists(models_path):
                         raise FileNotFoundError(f"Models directory not found at: {models_path}")
 
                     if len(data) < 90:
-                        print(f"[predictor] WARNING: Not enough data points ({len(data)}), waiting for more data")
+                        print(f"[predictor] WARNING: Not enough data points ({len(data)})")
                         await self.connection.send(
                             "topic:prediction",
-                            {"scent": "waiting", "confidence": "insufficient data"}
+                            {"scent": "error", "confidence": "insufficient data"}
                         )
                         continue
 
-                    # Create thread pool
+                    # Create an event to signal when prediction is complete
+                    prediction_done = threading.Event()
+                    prediction_result = None
+
+                    # Start prediction in background thread
                     with concurrent.futures.ThreadPoolExecutor() as pool:
-                        # Start sending "processing" messages
-                        while self.current_state == "PredictingState":
+                        future = pool.submit(self._process_prediction, data, models_path)
+                        
+                        # Send "processing" messages while waiting for prediction
+                        while not prediction_done.is_set():
+                            if self.current_state != "PredictingState":
+                                break
+                            
                             await self.connection.send(
                                 "topic:prediction",
-                                {"scent": "processing", "confidence": "calculating"}
+                                {"scent": "processing", "confidence": "0.0"}
                             )
                             
-                            # Run the heavy processing in a separate thread
-                            future = pool.submit(self._process_prediction, data, models_path)
-                            
-                            try:
-                                # Wait for the result with a timeout
-                                result = await asyncio.get_event_loop().run_in_executor(
-                                    None, 
-                                    future.result,
-                                    1  # 1 second timeout
-                                )
-                                
-                                if result:
-                                    # Send prediction for 10 seconds
-                                    t_end = asyncio.get_event_loop().time() + 10.0
-                                    while asyncio.get_event_loop().time() < t_end:
-                                        if self.current_state != "PredictingState":
-                                            break
-                                        await self.connection.send(
-                                            "topic:prediction",
-                                            {"scent": result[0], "confidence": f"{result[1]:.2f}"}
-                                        )
-                                        await asyncio.sleep(0.5)
-                                    print(f"[predictor] prediction complete: {result}")
-                                    break
-                                
-                            except concurrent.futures.TimeoutError:
-                                await asyncio.sleep(0.5)  # Wait before sending next processing message
-                                continue
+                            # Check if prediction is done
+                            if future.done():
+                                prediction_result = future.result()
+                                prediction_done.set()
+                            else:
+                                await asyncio.sleep(0.5)
 
-                except ValueError as e:
-                    print(f"[predictor] Data processing error: {str(e)}")
-                    await self.connection.send(
-                        "topic:prediction",
-                        {"scent": "error", "confidence": "data processing error"}
-                    )
+                        # If we have a result, send it for 10 seconds
+                        if prediction_result:
+                            t_end = loop.time() + 10.0
+                            while loop.time() < t_end:
+                                if self.current_state != "PredictingState":
+                                    break
+                                await self.connection.send(
+                                    "topic:prediction",
+                                    {"scent": prediction_result[0], "confidence": f"{prediction_result[1]:.2f"}
+                                )
+                                await asyncio.sleep(0.5)
+                            print(f"[predictor] prediction complete: {prediction_result}")
+
                 except Exception as e:
-                    print(f"[predictor] Unexpected error: {str(e)}")
+                    print(f"[predictor] Error during prediction: {str(e)}")
                     await self.connection.send(
                         "topic:prediction",
                         {"scent": "error", "confidence": "processing error"}
                     )
+
+                print("[predictor] prediction phase complete — waiting for next PredictingState")
+
+                # Drain until we leave PredictingState
+                while True:
+                    new_state = await self._state_q.get()
+                    if new_state != "PredictingState":
+                        break
 
             except Exception as e:
                 print(f"[predictor] Critical error in prediction loop: {str(e)}")
                 await asyncio.sleep(1)
             finally:
                 self.prediction_active = False
-                print("[predictor] prediction phase complete — waiting for next PredictingState")
 
     def _process_prediction(self, data, models_path):
         """Run the prediction processing in a separate thread"""
@@ -225,19 +219,6 @@ class Predictor(BaseDataClient):
         except Exception as e:
             print(f"[predictor] Error in prediction thread: {str(e)}")
             return None
-
-    async def _send_processing_status(self):
-        """Send processing status messages while prediction is being calculated"""
-        try:
-            while True:
-                await self.connection.send(
-                    "topic:prediction",
-                    {"scent": "processing", "confidence": "calculating"}
-                )
-                await asyncio.sleep(0.5)
-        except asyncio.CancelledError:
-            # Task was cancelled, which is expected
-            pass
 
 if __name__ == "__main__":
     async def main():
