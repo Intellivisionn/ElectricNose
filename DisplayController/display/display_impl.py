@@ -66,24 +66,71 @@ class BasePygameDisplay(IDisplay):
         except Exception:
             pass
 
-        # 3) try each SDL video driver until one works
-        #    (this covers fbcon, DirectFB, KMSDRM, RPI, X11, etc)
+        # 3) Try KMS/DRM first for ILI9341
         pygame.display.quit()
-        for drv in ("fbcon", "directfb", "kmsdrm", "rpi", "x11"):
-            os.environ["SDL_VIDEODRIVER"] = drv
+        drivers_to_try = [
+            {
+                "driver": "kmsdrm",
+                "env": {
+                    "SDL_VIDEODRIVER": "kmsdrm",
+                    "SDL_KMSDRM_DEVICE_INDEX": "1"
+                }
+            },
+            {
+                "driver": "fbcon",
+                "env": {
+                    "SDL_VIDEODRIVER": "fbcon",
+                    "SDL_FBDEV": "/dev/fb0"
+                }
+            },
+            {
+                "driver": "directfb",
+                "env": {
+                    "SDL_VIDEODRIVER": "directfb"
+                }
+            },
+            {
+                "driver": "x11",
+                "env": {
+                    "SDL_VIDEODRIVER": "x11"
+                }
+            }
+        ]
+
+        for driver in drivers_to_try:
+            # Clear previous environment variables
+            for key in ["SDL_VIDEODRIVER", "SDL_KMSDRM_DEVICE_INDEX", "SDL_FBDEV"]:
+                os.environ.pop(key, None)
+            
+            # Set new environment variables
+            for key, value in driver["env"].items():
+                os.environ[key] = value
+
             try:
                 pygame.display.init()
+                print(f"Successfully initialized {driver['driver']}")
                 break
             except pygame.error as e:
-                print(f"SDL_VIDEODRIVER={drv} failed: {e}")
-                continue
+                print(f"Failed to initialize {driver['driver']}: {e}")
         else:
             raise RuntimeError("No SDL video driver initialized successfully")
 
         # 4) now finish pygame init and open fullscreen
         pygame.init()                # init remaining modules (after display)
         pygame.mouse.set_visible(False)
-        self.screen = pygame.display.set_mode((800, 480), pygame.FULLSCREEN)
+        
+        # Get the current display info
+        info = pygame.display.Info()
+        if info.current_w > 0 and info.current_h > 0:
+            width, height = info.current_w, info.current_h
+        else:
+            width, height = 320, 240  # Default for ILI9341
+            
+        try:
+            self.screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+        except pygame.error:
+            # Fallback to windowed mode if fullscreen fails
+            self.screen = pygame.display.set_mode((width, height))
 
     @log_call
     def stop(self):
@@ -198,15 +245,19 @@ class BasePygameDisplay(IDisplay):
 
 
 class PiTFTDisplay(BasePygameDisplay):
+    def __init__(self):
+        super().__init__()
+        self.fb_device = "/dev/fb0"
+
     @log_call
     def start(self):
-        os.environ["SDL_FBDEV"] = "/dev/fb0"
+        os.environ["SDL_FBDEV"] = self.fb_device
         super().start()
     
     @log_call
     def check_connection(self) -> bool:
         # Also ensure the framebuffer device still exists on disk
-        return os.path.exists(os.environ["SDL_FBDEV"]) and super().check_connection()
+        return os.path.exists(self.fb_device) and super().check_connection()
 
 class HDMIDisplay(BasePygameDisplay):
     @log_call
