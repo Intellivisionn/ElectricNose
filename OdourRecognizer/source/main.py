@@ -32,9 +32,6 @@ class Predictor(BaseDataClient):
         REQUIRED_SAMPLES = 90  # Define constant for required samples
 
         # Check if we have enough data
-        if len(data) < REQUIRED_SAMPLES:
-            raise ValueError(f"Not enough data points. Have {len(data)}, need {REQUIRED_SAMPLES}")
-
         # Pad data if necessary
         if len(data) < REQUIRED_SAMPLES:
             # Duplicate the last entry to pad
