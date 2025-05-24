@@ -2,7 +2,7 @@ from enum import Enum
 import os
 import numpy as np
 
-from OdourRecognizer.src.recognizers.MLModel import MLModel
+from OdourRecognizer.source.recognizers.MLModel import MLModel
 
 labels = {
     0: "Banana",

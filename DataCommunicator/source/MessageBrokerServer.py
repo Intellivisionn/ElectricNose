@@ -12,9 +12,9 @@ class MessageBrokerServer:
         self.port = port
         self.topics: dict[str, set[str]] = {}  # topic -> set of client names
         self.connections: dict[str, websockets.WebSocketServerProtocol] = {}
+        self.client_topics: dict[str, set[str]] = {}  # client -> set of topics
 
     async def handler(self, websocket, path=None):
-        # First message must be registration: {"type":"register","name": "<client-name>"}
         try:
             register = await websocket.recv()
             data = json.loads(register)
@@ -23,8 +23,12 @@ class MessageBrokerServer:
                 return
 
             name = data['name']
-            self.connections[name] = websocket
-            print(f'[Broker] Registered client: {name}')
+            base_name = name.split('_')[0]  # Allow multiple connections from same base name
+            connection_id = f"{base_name}_{id(websocket)}"
+            
+            self.connections[connection_id] = websocket
+            self.client_topics[connection_id] = set()
+            print(f'[Broker] Registered client: {connection_id}')
 
             async for message in websocket:
                 msg = json.loads(message)
@@ -32,15 +36,15 @@ class MessageBrokerServer:
 
                 if mtype == 'subscribe':
                     topic = msg['topic']
-                    name = msg['name']
-                    self.topics.setdefault(topic, set()).add(name)
-                    print(f'[Broker] {name} subscribed to {topic}')
+                    self.topics.setdefault(topic, set()).add(connection_id)
+                    self.client_topics[connection_id].add(topic)
+                    print(f'[Broker] {connection_id} subscribed to {topic}')
 
                 elif mtype == 'unsubscribe':
                     topic = msg['topic']
-                    name = msg['name']
-                    self.topics.get(topic, set()).discard(name)
-                    print(f'[Broker] {name} unsubscribed from {topic}')
+                    self.topics.get(topic, set()).discard(connection_id)
+                    self.client_topics[connection_id].discard(topic)
+                    print(f'[Broker] {connection_id} unsubscribed from {topic}')
 
                 elif mtype == 'publish':
                     topic = msg['topic']
@@ -49,9 +53,8 @@ class MessageBrokerServer:
                     await self.publish(topic, frm, payload)
 
                 else:
-                    # fallback to old style direct message
-                    to   = msg.get('to')
-                    frm  = msg.get('from')
+                    to = msg.get('to')
+                    frm = msg.get('from')
                     payload = msg.get('payload')
                     if to == 'broadcast':
                         await self.broadcast(frm, payload)
@@ -61,15 +64,25 @@ class MessageBrokerServer:
         except websockets.exceptions.ConnectionClosed:
             pass
         except Exception as e:
-            # Log unexpected errors without killing the server
             print(f'[Broker] Connection handler failed: {e}')
         finally:
-            # clean up if registered
-            for client_name, ws in list(self.connections.items()):
-                if ws is websocket:
-                    del self.connections[client_name]
-                    print(f'[Broker] Client disconnected: {client_name}')
-                    break
+            if 'connection_id' in locals():
+                # Clean up all subscriptions for this connection
+                for topic in self.client_topics.get(connection_id, set()):
+                    self.topics.get(topic, set()).discard(connection_id)
+                self.client_topics.pop(connection_id, None)
+                self.connections.pop(connection_id, None)
+                print(f'[Broker] Client disconnected: {connection_id}')
+
+    async def publish(self, topic: str, frm: str, payload: dict):
+        msg = json.dumps({'from': frm, 'topic': topic, 'payload': payload})
+        for connection_id in self.topics.get(topic, set()):
+            ws = self.connections.get(connection_id)
+            if ws:
+                try:
+                    await ws.send(msg)
+                except websockets.exceptions.ConnectionClosed:
+                    continue
 
     async def route(self, frm: str, to: str, payload: dict):
         ws = self.connections.get(to)
@@ -82,13 +95,6 @@ class MessageBrokerServer:
         msg = json.dumps({'from': frm, 'payload': payload})
         for nm, ws in self.connections.items():
             await ws.send(msg)
-
-    async def publish(self, topic: str, frm: str, payload: dict):
-        msg = json.dumps({'from': frm, 'topic': topic, 'payload': payload})
-        for name in self.topics.get(topic, set()):
-            ws = self.connections.get(name)
-            if ws:
-                await ws.send(msg)
 
     async def _serve(self):
         server = await websockets.serve(self.handler, self.host, self.port)
