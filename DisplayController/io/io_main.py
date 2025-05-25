@@ -22,7 +22,7 @@ async def main():
         connection=conn,
         button_input=buttons,
         use_hdmi=False,
-        loading_duration=185,
+        loading_duration=250,
         ventilation_duration=300,
         keepalive=5
     )

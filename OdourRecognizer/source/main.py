@@ -3,6 +3,11 @@ import os
 import sys
 import asyncio
 import numpy as np
+from datetime import datetime
+import threading
+
+import concurrent.futures
+from functools import partial   
 
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 
@@ -14,17 +19,30 @@ from DataCommunicator.source.BaseDataClient import BaseDataClient
 
 class Predictor(BaseDataClient):
     def __init__(self, uri: str):
-        # build the WS client but don't connect yet
         super().__init__('predictor', WebSocketConnection(uri))
         self._state_q: asyncio.Queue[str] = asyncio.Queue()
         self._data_q: asyncio.Queue[dict] = asyncio.Queue() 
         self.prediction_active = False
+        self.data = []
+        self.current_state = None  # Add current state tracking
 
     def prepareData(self, data: list) -> list[float]:
         # Modified to accept dict instead of file path
         timepoint_vectors = []
+        REQUIRED_SAMPLES = 90  # Define constant for required samples
 
-        for data_point in data[:90]:
+        # Check if we have enough data
+        # Pad data if necessary
+        if len(data) < REQUIRED_SAMPLES:
+            # Duplicate the last entry to pad
+            last_entry = data[-1]
+            while len(data) < REQUIRED_SAMPLES:
+                data.append(last_entry.copy())
+
+        # Take exactly REQUIRED_SAMPLES samples
+        data = data[-REQUIRED_SAMPLES:]  # Take the most recent samples
+
+        for data_point in data:
             data_point_attr = []
             for sensor, readings in data_point.items():
                 if sensor == "timestamp" or sensor == "SGP30Sensor":
@@ -33,15 +51,15 @@ class Predictor(BaseDataClient):
                     for i, reading in enumerate(readings.values()):
                         if i in [0, 1, 2]:
                             continue
-                        data_point_attr.append(reading)
+                        data_point_attr.append(float(reading))
                 elif sensor == "GroveGasSensor":
                     for i, reading in enumerate(readings.values()):
                         if i in [4, 5]:
                             continue
-                        data_point_attr.append(reading)
+                        data_point_attr.append(float(reading))
                 else:
                     for reading in readings.values():
-                        data_point_attr.append(reading)
+                        data_point_attr.append(float(reading))
             timepoint_vectors.append(data_point_attr)
 
         gradients = []
@@ -54,7 +72,14 @@ class Predictor(BaseDataClient):
         flattened_readings = [item for sublist in timepoint_vectors for item in sublist]
         flattened_gradients = [item for sublist in gradients for item in sublist]
 
-        return flattened_readings + flattened_gradients
+        final_vector = flattened_readings + flattened_gradients
+        
+        # Verify the feature count
+        EXPECTED_FEATURES = 895  # The number of features the model expects
+        if len(final_vector) != EXPECTED_FEATURES:
+            raise ValueError(f"Feature mismatch. Generated {len(final_vector)} features, model expects {EXPECTED_FEATURES}")
+
+        return final_vector
 
     async def start(self):
         # explicitly open the WS connection
@@ -63,12 +88,11 @@ class Predictor(BaseDataClient):
         return await super().start()
 
     async def run(self):
-        # subscribe to the state updates
         await self.connection.subscribe("state")
-        await self.connection.subscribe("completedata")
-        print("[predictor] subscribed to state and completedata")
+        await self.connection.subscribe("sensor_readings")
+        print("[predictor] subscribed to state and sensor_readings")
 
-        # kick off our background loop
+        # Only create prediction loop task
         asyncio.create_task(self._prediction_loop())
 
         # and stay alive
@@ -80,58 +104,79 @@ class Predictor(BaseDataClient):
             state = payload.get("state")
             if state:
                 print(f"[predictor] got state → {state}")
+                self.current_state = state  # Update current state
                 await self._state_q.put(state)
-        elif frm == 'collector':  # Complete data from collector
-            if self.prediction_active:
-                print("[predictor] received complete data")
-                await self._data_q.put(payload)
+                
+                # Clear data when entering LoadingState
+                if state == "LoadingState":
+                    print("[predictor] clearing data for LoadingState")
+                    self.data = []
+                    self.prediction_active = False
+                    
+        elif frm == 'sensor':
+            payload['timestamp'] = datetime.now().isoformat()
+            # Only collect data during LoadingState
+            if self.current_state == "LoadingState":
+                self.data.append(payload)
+                print(f"[Collector] Received from {frm}: {payload}")
+                print(f"[Collector] Data length: {len(self.data)}")
 
     async def _prediction_loop(self):
+        loop = asyncio.get_event_loop()
         while True:
-            # Wait for PredictingState
+            # wait until IOHandler switches to PredictingState
             state = await self._state_q.get()
             if state != "PredictingState":
                 continue
 
             print("[predictor] entering prediction phase")
-            self.prediction_active = True
 
-            try:
-                # Wait for complete data
-                print("[predictor] waiting for complete data")
-                data = await asyncio.wait_for(self._data_q.get(), timeout=180.0)
+            # Start prediction in background thread
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(self._process_prediction, self.data, os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"))
                 
-                # Process the data
-                print("[predictor] processing data")
-                recognizer = RecognizerManager(models_folder_path="models")
-                processed_data = self.prepareData(data)
-                result = recognizer.recognize(processed_data)
-
-                # Send prediction for 10 seconds
-                t_end = asyncio.get_event_loop().time() + 10.0
-                while asyncio.get_event_loop().time() < t_end:
+                # PHASE 1: Send "unsure" until prediction is ready
+                while not future.done():
                     await self.connection.send(
                         "topic:prediction",
-                        {"scent": result[0], "confidence": f"{result[1]:.2f}"}
+                        {"scent": "unsure", "confidence": 0.0}
                     )
                     await asyncio.sleep(0.5)
 
-            except asyncio.TimeoutError:
-                print("[predictor] timeout waiting for complete data")
-                await self.connection.send(
-                    "topic:prediction",
-                    {"scent": "error", "confidence": "timeout"}
-                )
+                # Get prediction result
+                try:
+                    prediction_result = future.result()
+                    
+                    if prediction_result:
+                        # PHASE 2: Send actual prediction for 10s
+                        t1 = loop.time()
+                        while loop.time() - t1 < 10.0:
+                            await self.connection.send(
+                                "topic:prediction",
+                                {"scent": prediction_result[0], "confidence": float(prediction_result[1])}
+                            )
+                            await asyncio.sleep(0.5)
+                        print(f"[predictor] prediction complete: {prediction_result}")
+                except Exception as e:
+                    print(f"[predictor] Error during prediction: {str(e)}")
 
-            finally:
-                self.prediction_active = False
-                print("[predictor] prediction phase complete — waiting for next PredictingState")
+            print("[predictor] prediction phase complete — waiting for next PredictingState")
 
-            # Clear state queue until we leave PredictingState
+            # drain until IOHandler leaves PredictingState
             while True:
                 new_state = await self._state_q.get()
                 if new_state != "PredictingState":
                     break
+
+    def _process_prediction(self, data, models_path):
+        """Run the prediction processing in a separate thread"""
+        try:
+            recognizer = RecognizerManager(models_folder_path=models_path)
+            processed_data = self.prepareData(data)
+            return recognizer.recognize(processed_data)
+        except Exception as e:
+            print(f"[predictor] Error in prediction thread: {str(e)}")
+            return None
 
 if __name__ == "__main__":
     async def main():
