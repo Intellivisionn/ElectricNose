@@ -9,7 +9,7 @@ Library           glob
 ${PROJECT_ROOT}       ${CURDIR}/..
 ${REQ_FILE}           ${CURDIR}/requirements.txt
 ${PYTHON}             NONE    # placeholder, overwritten in test setup
-${BROKER}             ${PROJECT_ROOT}/DataCommunicator/source/MessageBrokerServer.py
+${BROKER}             DataCommunicator.source.MessageBrokerServer
 ${ODOUR_RECOGNIZER}   ${PROJECT_ROOT}/OdourRecognizer/source/main.py
 ${DISPLAY}            ${PROJECT_ROOT}/IntegrationTests/mocks/MockDisplayMain.py
 ${IO_HANDLER}         ${PROJECT_ROOT}/IntegrationTests/mocks/MockIOMain.py
@@ -35,10 +35,12 @@ Integration Test With Prediction Flow
 
     Create Directory    ${PROJECT_ROOT}/IntegrationTests/output
 
+    # ─── Inject broker URI/port so collector and reader talk to our fake ───
     Set Environment Variable    BROKER_URI    ws://localhost:8765
     Set Environment Variable    BROKER_PORT   8765
 
-    Start Process    ${PYTHON}    ${BROKER}    
+    # 1) Start the WebSocket broker
+    Start Process    ${PYTHON}    -m    ${BROKER}    cwd=${PROJECT_ROOT}
     ...    cwd=${PROJECT_ROOT}    
     ...    stdout=${PROJECT_ROOT}/IntegrationTests/output/broker.log    
     ...    stderr=STDOUT
