@@ -7,10 +7,12 @@ from IntegrationTests.mocks.BMEFake import BME680Sensor
 from IntegrationTests.mocks.SGPFake import SGP30Sensor
 from IntegrationTests.mocks.GroveFake import GroveGasSensor
 from SensorReader.main import BaseSensorReader, SensorReaderClient
+from IntegrationTests.mocks.FakeSensorDataLoader import FakeSensorDataLoader
 
 class FakeElectricNoseSensorReader(BaseSensorReader):
     def __init__(self, output_path, sleep_interval=2):
-        sensors = [BME680Sensor(), SGP30Sensor(), GroveGasSensor()]
+        loader = FakeSensorDataLoader("data.json")
+        sensors = [BME680Sensor(loader), SGP30Sensor(loader), GroveGasSensor(loader)]
         super().__init__(sensors, output_path, sleep_interval)
 
 if __name__ == "__main__":

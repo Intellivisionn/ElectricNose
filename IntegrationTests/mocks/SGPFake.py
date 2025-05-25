@@ -1,10 +1,8 @@
 from SensorReader.Sensors.SensorInterface import Sensor
 
 class SGP30Sensor(Sensor):
-    def __init__(self): pass
+    def __init__(self, loader):
+        self.loader = loader
 
     def read_data(self):
-        return {
-            "TVOC": 120,
-            "CO2": 400
-        }
+        return self.loader.next()["SGP30Sensor"]
