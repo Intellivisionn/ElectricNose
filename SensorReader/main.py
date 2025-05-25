@@ -7,7 +7,10 @@ import json
 from pathlib import Path
 from SensorReader.Sensors.SensorManager import SensorManager
 from SensorReader.aspects.LoggingAspect import LoggingAspect
-import board
+try:
+    import board
+except (NotImplementedError, ImportError):
+    from fakerpi import board
 from smbus2 import SMBus
 from SensorReader.Sensors.BME680Sensor import BME680Sensor
 from SensorReader.Sensors.SGP30Sensor import SGP30Sensor
