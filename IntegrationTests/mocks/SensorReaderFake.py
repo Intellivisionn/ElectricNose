@@ -11,7 +11,7 @@ from IntegrationTests.mocks.FakeSensorDataLoader import FakeSensorDataLoader
 
 class FakeElectricNoseSensorReader(BaseSensorReader):
     def __init__(self, output_path, sleep_interval=2):
-        loader = FakeSensorDataLoader("data.json")
+        loader = FakeSensorDataLoader(Path(__file__).parent / "data.json")
         sensors = [BME680Sensor(loader), SGP30Sensor(loader), GroveGasSensor(loader)]
         super().__init__(sensors, output_path, sleep_interval)
 
