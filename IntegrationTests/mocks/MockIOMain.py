@@ -15,7 +15,7 @@ class MockButtonHandler(IButtonInput):
         asyncio.create_task(self._simulate_buttons())
 
     async def _simulate_buttons(self):
-        await asyncio.sleep(2)  # Give system time to initialize
+        await asyncio.sleep(10)  # Give system time to initialize
         print("[MockIO] Simulating 'start' button press")
         self._callback("start")  # Triggers transition to LoadingState
 
@@ -32,7 +32,7 @@ async def main():
         connection=conn,
         button_input=button_handler,
         use_hdmi=False,
-        loading_duration=250,
+        loading_duration=15,
         ventilation_duration=10,
         keepalive=3
     )

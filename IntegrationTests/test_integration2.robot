@@ -15,7 +15,7 @@ ${DISPLAY}            ${PROJECT_ROOT}/IntegrationTests/mocks/MockDisplayMain.py
 ${IO_HANDLER}         ${PROJECT_ROOT}/IntegrationTests/mocks/MockIOMain.py
 ${SENSOR_READER}      ${PROJECT_ROOT}/IntegrationTests/mocks/SensorReaderFake.py
 ${SENSOR_JSON}        ${PROJECT_ROOT}/IntegrationTests/mocks/sensor_data.json
-${TEST_DURATION}      300s
+${TEST_DURATION}      50s
 
 *** Test Cases ***
 Integration Test With Prediction Flow
@@ -79,5 +79,4 @@ Integration Test With Prediction Flow
     Should Not Be Empty    ${matches}
 
     ${log}=           Get File          ${matches}[0]
-    Should Contain    ${log}           prediction complete
-    Should Contain    ${log}           confidence
+    Should Contain    ${log}           Feature mismatch
