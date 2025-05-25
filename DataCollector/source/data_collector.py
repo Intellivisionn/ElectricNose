@@ -6,17 +6,13 @@ import asyncio
 from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 
-
 from DataCollector.source.storage.comm_storage import CommStorage
-
 
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 from DataCommunicator.source.BaseDataClient   import BaseDataClient
 
 from DataCollector.source.storage.json_storage import JSONStorage
 from DataCollector.source.storage_manager import StorageManager
-
-
 
 class SensorDataCollector:
     def __init__(self, scent_name: str = None):
@@ -51,7 +47,7 @@ class SensorDataCollector:
         # 2) Only JSONStorage for now
         storages = [
             JSONStorage(),
-            CommStorage(),
+            ##CommStorage(), - ready for use
             # CSVStorage(...)       # ← can plug in later
             # CloudStorage(...)     # ← can plug in later
         ]
