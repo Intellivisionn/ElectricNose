@@ -11,7 +11,7 @@ from OdourRecognizer.source.recognizers.MLModel import MLModel
 class TestMLModel:
     @patch("OdourRecognizer.source.recognizers.MLModel.os.path.exists", return_value=True)
     @patch("OdourRecognizer.source.recognizers.MLModel.joblib.load")
-    def test_mlmodel_init_loads_model(self, mock_load):
+    def test_mlmodel_init_loads_model(self, mock_load, mock_exists):
         mock_model = MagicMock()
         mock_load.return_value = mock_model
 
@@ -22,8 +22,9 @@ class TestMLModel:
         with pytest.raises(FileNotFoundError):
             MLModel("models/does_not_exist.pkl")
 
+    @patch("OdourRecognizer.source.recognizers.MLModel.os.path.exists", return_value=True)
     @patch("OdourRecognizer.source.recognizers.MLModel.joblib.load")
-    def test_mlmodel_recognize(self, mock_load):
+    def test_mlmodel_recognize(self, mock_load, mock_exists):
         mock_model = MagicMock()
         mock_model.predict_proba.return_value = [[0.1, 0.9]]
         mock_load.return_value = mock_model
