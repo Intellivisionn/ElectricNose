@@ -1,5 +1,8 @@
+import sys
+
 import joblib
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 from OdourRecognizer.source.recognizers.RecognizeInterface import RecognizeInterface
 
 class MLModel(RecognizeInterface):

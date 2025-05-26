@@ -1,7 +1,8 @@
+import sys
 from enum import Enum
 import os
 import numpy as np
-
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 from OdourRecognizer.source.recognizers.MLModel import MLModel
 
 labels = {
