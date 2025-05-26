@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 from OdourRecognizer.source.recognizers.MLModel import MLModel
 
 class TestMLModel:
+    @patch("OdourRecognizer.source.recognizers.MLModel.os.path.exists", return_value=True)
     @patch("OdourRecognizer.source.recognizers.MLModel.joblib.load")
     def test_mlmodel_init_loads_model(self, mock_load):
         mock_model = MagicMock()
