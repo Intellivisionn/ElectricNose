@@ -37,3 +37,5 @@ class RecognizerManager:
         prediction = labels[np.argmax(probas, axis=1)[0]]
 
         return prediction, confidence
+
+
