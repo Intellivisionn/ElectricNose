@@ -21,10 +21,10 @@ class RecognizerManager:
             if os.path.isfile(file_path) and filename.endswith(".pkl"):
                 self.models.append(MLModel(file_path))
 
-    def recognize(self, data) -> list:
+    def recognize_all(self, data) -> list:
         probas = None
         for model in self.models:
-            activeProbas = model.model.predict_proba([data])
+            activeProbas = model.recognize(data)
             if probas is None:
                 probas = activeProbas
             else:

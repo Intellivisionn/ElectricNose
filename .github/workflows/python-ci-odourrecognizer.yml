@@ -1,0 +1,40 @@
+name: Python DataCollector CI
+
+on:
+  push:
+    paths:
+      - 'OdourRecognizer/**'
+  pull_request:
+    paths:
+      - 'OdourRecognizer/**'
+
+jobs:
+  run-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version:
+          - "3.12"
+          - "3.13"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        working-directory: OdourRecognizer
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run tests
+        working-directory: OdourRecognizer
+        run: pytest
