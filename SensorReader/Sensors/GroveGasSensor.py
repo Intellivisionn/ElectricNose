@@ -43,7 +43,7 @@ class GroveGasSensor(Sensor):
         self._write_byte(WARMING_UP)
         self._write_byte(command)
         time.sleep(0.05)  # Allow time for sensor to respond
-        data = self.bus.read_i2c_block_data(self.address, command, 2) #gpt generated 4, but when you run it it is the same actually
+        data = self.bus.read_i2c_block_data(self.address, command, 2) #library adviced 4, but when you run it with 2 it is the same actually
         value = int.from_bytes(data, byteorder='little')
         #print(f"Read {value} from command {hex(command)}")
         return value
