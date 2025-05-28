@@ -80,14 +80,26 @@ Integration Test With Prediction Flow
     ${matches}=     Glob              ${log_path}/*.log
     Should Not Be Empty    ${matches}
 
-    ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
-    @{log_lines}=    Split String    ${display_log_content}    \n
+    TRY
+        ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
+        @{log_lines}=    Split String    ${display_log_content}    \n
 
-    ${prediction_lines}=    Evaluate    [line for line in ${log_lines} if 'prediction' in line.lower()]
-    Should Not Be Empty    ${prediction_lines}
+        ${prediction_lines}=    Evaluate    [line for line in ${log_lines} if 'prediction' in line.lower()]
+        Should Not Be Empty    ${prediction_lines}
 
-    ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'unsure' in line.lower()]
-    Should Not Be Empty    ${unsure_lines}
+        ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'unsure' in line.lower()]
+        Should Not Be Empty    ${unsure_lines}
 
-    ${confidence_lines}=    Evaluate    [line for line in ${log_lines} if 'confidence' in line.lower()]
-    Should Not Be Empty    ${confidence_lines}
+        ${confidence_lines}=    Evaluate    [line for line in ${log_lines} if 'confidence' in line.lower()]
+        Should Not Be Empty    ${confidence_lines}
+    EXCEPT    AS    ${error}
+        Log To Console    Test failed with error: ${error}
+        Log To Console    Displaying contents of log files:
+        ${log_files}=    List Files In Directory    ${PROJECT_ROOT}/IntegrationTests/output    pattern=*.log
+        FOR    ${log_file}    IN    @{log_files}
+            ${log_content}=    Get File    ${log_file}    encoding=UTF-8
+            Log To Console    Contents of ${log_file}:
+            Log To Console    ${log_content}
+        END
+        Fail    Test failed due to: ${error}
+    END

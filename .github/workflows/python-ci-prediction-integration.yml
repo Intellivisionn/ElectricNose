@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r IntegrationTest/requirements.txt
+          pip install -r IntegrationTests/requirements.txt
           pip install robotframework
 
       - name: Run Robot Framework tests
