@@ -1,7 +1,8 @@
+import sys
 from enum import Enum
 import os
 import numpy as np
-
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 from OdourRecognizer.source.recognizers.MLModel import MLModel
 
 labels = {
@@ -21,10 +22,10 @@ class RecognizerManager:
             if os.path.isfile(file_path) and filename.endswith(".pkl"):
                 self.models.append(MLModel(file_path))
 
-    def recognize(self, data) -> list:
+    def recognize_all(self, data) -> list:
         probas = None
         for model in self.models:
-            activeProbas = model.model.predict_proba([data])
+            activeProbas = model.recognize(data)
             if probas is None:
                 probas = activeProbas
             else:

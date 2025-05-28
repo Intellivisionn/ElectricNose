@@ -173,7 +173,7 @@ class Predictor(BaseDataClient):
         try:
             recognizer = RecognizerManager(models_folder_path=models_path)
             processed_data = self.prepareData(data)
-            return recognizer.recognize(processed_data)
+            return recognizer.recognize_all(processed_data)
         except Exception as e:
             print(f"[predictor] Error in prediction thread: {str(e)}")
             return None
