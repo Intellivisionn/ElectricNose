@@ -4,6 +4,7 @@ Library           Process
 Library           Collections
 Library           BuiltIn
 Library           glob
+Library           String
 
 *** Variables ***
 ${PROJECT_ROOT}       ${CURDIR}/..
@@ -32,6 +33,7 @@ Integration Test With Prediction Flow
 
     Set Environment Variable    PYTHONPATH    ${PROJECT_ROOT}
     Set Environment Variable    PYTHONIOENCODING    utf-8
+    Set Environment Variable    PYTHONUNBUFFERED    1
 
     Create Directory    ${PROJECT_ROOT}/IntegrationTests/output
 
@@ -78,5 +80,14 @@ Integration Test With Prediction Flow
     ${matches}=     Glob              ${log_path}/*.log
     Should Not Be Empty    ${matches}
 
-    ${log}=           Get File          ${matches}[0]
-    Should Contain    ${log}           Feature mismatch
+    ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
+    @{log_lines}=    Split String    ${display_log_content}    \n
+
+    ${prediction_lines}=    Evaluate    [line for line in ${log_lines} if 'prediction' in line.lower()]
+    Should Not Be Empty    ${prediction_lines}
+
+    ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'unsure' in line.lower()]
+    Should Not Be Empty    ${unsure_lines}
+
+    ${confidence_lines}=    Evaluate    [line for line in ${log_lines} if 'confidence' in line.lower()]
+    Should Not Be Empty    ${confidence_lines}

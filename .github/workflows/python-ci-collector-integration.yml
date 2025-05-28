@@ -1,0 +1,45 @@
+name: Collector RobotFramework Test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r SensorReader/requirements.txt
+          pip install robotframework
+
+      - name: Run Robot Framework tests
+        run: |
+          mkdir -p reports
+          robot --outputdir reports IntegrationTests/test_collection.robot
+
+      - name: Print debug logs (stdout & stderr)
+        run: |
+          echo "===== SensorReader STDOUT ====="
+          cat IntegrationTests/reader.log || echo "No reader.log found"
+          echo "===== SensorReader STDERR ====="
+          cat IntegrationTests/reader.err || echo "No reader.err found"
+          echo "===== Test Output Summary ====="
+          cat reports/output.xml || echo "No Robot output.xml found"
+          cat reports/log.html || echo "No Robot log.html found"
+
+      - name: Fail build if test failed
+        run: |
+          grep -q "status=\"FAIL\"" reports/output.xml && exit 1 || echo "Tests passed"

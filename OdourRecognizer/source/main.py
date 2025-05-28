@@ -175,7 +175,7 @@ class Predictor(BaseDataClient):
             processed_data = self.prepareData(data)
             return recognizer.recognize(processed_data)
         except Exception as e:
-            print(f"[predictor] Error in prediction thread: {str(e)}")
+            print(f"[predictor] Error in prediction thread: {str(e)}", flush=True)
             return None
 
 if __name__ == "__main__":
