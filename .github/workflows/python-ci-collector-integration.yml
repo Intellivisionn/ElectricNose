@@ -1,4 +1,4 @@
-name: Robot Framework Tests
+name: Collector RobotFramework Test
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       - name: Run Robot Framework tests
         run: |
           mkdir -p reports
-          robot --outputdir reports IntegrationTests/
+          robot --outputdir reports IntegrationTests/test_collection.robot
 
       - name: Print debug logs (stdout & stderr)
         run: |

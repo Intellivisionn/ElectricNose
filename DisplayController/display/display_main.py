@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..')))
 
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
-from display_controller import DisplayController
+from DisplayController.display.display_controller import DisplayController
 
 USE_HDMI = False
 WS_URI   = "ws://localhost:8765"

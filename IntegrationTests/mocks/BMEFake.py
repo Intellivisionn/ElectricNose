@@ -1,12 +1,8 @@
 from SensorReader.Sensors.SensorInterface import Sensor
 
 class BME680Sensor(Sensor):
-    def __init__(self): pass
+    def __init__(self, loader):
+        self.loader = loader
 
     def read_data(self):
-        return {
-            "Temperature": 22.5,
-            "Humidity": 50.1,
-            "Pressure": 1008.2,
-            "GasResistance": 14000
-        }
+        return self.loader.next()["BME680Sensor"]

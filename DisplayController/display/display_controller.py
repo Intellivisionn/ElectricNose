@@ -12,7 +12,7 @@ from DisplayController.aspects.aop_decorators import log_call, catch_errors
 from DataCommunicator.source.WebSocketConnection import WebSocketConnection
 from DataCommunicator.source.BaseDataClient import BaseDataClient
 
-from display_impl import PiTFTDisplay, HDMIDisplay, HDMIStatusChecker
+from DisplayController.display.display_impl import PiTFTDisplay, HDMIDisplay, HDMIStatusChecker
 
 
 class DisplayController(BaseDataClient):
