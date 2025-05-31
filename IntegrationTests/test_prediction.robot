@@ -95,7 +95,7 @@ Integration Test With Prediction Flow
     ${recognizer_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/recognizer.log    encoding=UTF-8
     @{recognizer_log_lines}=    Split String    ${recognizer_log_content}    \n
 
-    ${feature_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'features' in line.lower()]
+    ${feature_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'prediction phase' in line.lower() or 'features' in line.lower()]
     Log To Console    feature_lines = ${feature_lines}
     Should Not Be Empty    ${feature_lines}
 
