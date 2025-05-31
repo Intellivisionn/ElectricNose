@@ -76,17 +76,11 @@ Integration Test With Prediction Flow
     Terminate All Processes
     Sleep    5s
 
-    Log To Console    PROJECT_ROOT = ${PROJECT_ROOT}
 
     ${log_path}=    Normalize Path    ${PROJECT_ROOT}/IntegrationTests/output
 
-    Run Keyword And Ignore Error    List Directory    ${log_path}
-    Run Keyword And Ignore Error    File Should Exist    ${log_path}/io.log
-    Run Keyword And Ignore Error    File Should Exist    ${log_path}/recognizer.log
-    Run Keyword And Ignore Error    File Should Exist    ${log_path}/sensor.log
-
     ${matches}=     Glob              ${log_path}/*.log
-    Log To Console    Glob matches: ${matches}
+    Log To Console    matches = ${matches}
 
     Log To Console    log_path = ${log_path}
     Should Not Be Empty    ${matches}
@@ -95,13 +89,16 @@ Integration Test With Prediction Flow
     @{log_lines}=    Split String    ${display_log_content}    \n
 
     ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'analyzing' in line.lower()]
+    Log To Console    unsure_lines = ${unsure_lines}
     Should Not Be Empty    ${unsure_lines}
 
     ${recognizer_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/recognizer.log    encoding=UTF-8
     @{recognizer_log_lines}=    Split String    ${recognizer_log_content}    \n
 
     ${feature_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'features' in line.lower()]
+    Log To Console    feature_lines = ${feature_lines}
     Should Not Be Empty    ${feature_lines}
 
     ${prediction_error_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'error in prediction thread' in line.lower() and 'logisticregression' in line.lower() and 'features' in line.lower()]
+    Log To Console    prediction_error_lines = ${prediction_error_lines}
     Should Not Be Empty    ${prediction_error_lines}
