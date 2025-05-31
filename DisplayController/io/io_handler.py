@@ -240,14 +240,6 @@ class IOHandler(BaseDataClient, IIOHandler):
     async def _loop(self):
         while True:
             with self._lock:
-                # if we're in PredictingState and haven't heard anything for keepalive,
-                # auto‐transition to VentilatingState
-                if isinstance(self._state, PredictingState) and self._last_heartbeat is not None:
-                    if time.time() - self._last_heartbeat > self.keepalive:
-                        self.change_state(VentilatingState())
-                        # skip on_tick for this iteration
-                        continue
-
                 self._state.on_tick(self)
 
             await asyncio.sleep(0.1)

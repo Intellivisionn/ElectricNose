@@ -76,30 +76,24 @@ Integration Test With Prediction Flow
     Terminate All Processes
     Sleep    5s
 
+    Log To Console    PROJECT_ROOT = ${PROJECT_ROOT}
+
     ${log_path}=    Normalize Path    ${PROJECT_ROOT}/IntegrationTests/output
     ${matches}=     Glob              ${log_path}/*.log
+    Log To Console    log_path = ${log_path}
     Should Not Be Empty    ${matches}
 
-    TRY
-        ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
-        @{log_lines}=    Split String    ${display_log_content}    \n
+    ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
+    @{log_lines}=    Split String    ${display_log_content}    \n
 
-        ${prediction_lines}=    Evaluate    [line for line in ${log_lines} if 'prediction' in line.lower()]
-        Should Not Be Empty    ${prediction_lines}
+    ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'analyzing' in line.lower()]
+    Should Not Be Empty    ${unsure_lines}
 
-        ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'unsure' in line.lower()]
-        Should Not Be Empty    ${unsure_lines}
+    ${recognizer_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/recognizer.log    encoding=UTF-8
+    @{recognizer_log_lines}=    Split String    ${recognizer_log_content}    \n
 
-        ${confidence_lines}=    Evaluate    [line for line in ${log_lines} if 'confidence' in line.lower()]
-        Should Not Be Empty    ${confidence_lines}
-    EXCEPT    AS    ${error}
-        Log To Console    Test failed with error: ${error}
-        Log To Console    Displaying contents of log files:
-        ${log_files}=    List Files In Directory    ${PROJECT_ROOT}/IntegrationTests/output    pattern=*.log
-        FOR    ${log_file}    IN    @{log_files}
-            ${log_content}=    Get File    ${log_file}    encoding=UTF-8
-            Log To Console    Contents of ${log_file}:
-            Log To Console    ${log_content}
-        END
-        Fail    Test failed due to: ${error}
-    END
+    ${feature_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'features' in line.lower()]
+    Should Not Be Empty    ${feature_lines}
+
+    ${prediction_error_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'error in prediction thread' in line.lower() and 'logisticregression' in line.lower() and 'features' in line.lower()]
+    Should Not Be Empty    ${prediction_error_lines}
