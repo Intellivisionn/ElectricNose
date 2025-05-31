@@ -10,7 +10,7 @@ It consists of these components:
 - **DataCommunicator** - Allows communication between different components
 - **OdourRecognizer** - The ML module making the odour classification possible.
 - **GraphPlotter** - Plot graphs using the collected sensor information.
-- **ModelTraining** - Traing the ML module for OdourRecognition improvements
+- **ModelTraining** - Training the ML module for OdourRecognition improvements
 
 ---
 
