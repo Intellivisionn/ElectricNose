@@ -1,7 +1,7 @@
 import time
 from DisplayController.io.state_machine import (
     IdleState, LoadingState, PredictingState,
-    VentilatingState, PausedState, CancelledState
+    VentilatingState, CancelledState
 )
 
 class DummyHandler:
@@ -26,7 +26,6 @@ class DummyHandler:
     def send_loading(self, rem): self.sent.append(f"load{rem}")
     def send_prediction(self, s, c): self.sent.append("pred")
     def send_ventilation_timer(self, rem): self.sent.append(f"vent{rem}")
-    def send_paused(self): self.sent.append("pause")
     def send_message(self, title, lines): self.sent.append(f"{title}:{lines}")
 
 def test_idle_to_loading_and_timeout():
@@ -57,7 +56,6 @@ def test_predicting_buttons_and_entry():
     st = PredictingState()
     # no on_entry logic except predictor start (noop)
     st.on_button(h, "cancel")
-    st.on_button(h, "halt")
     st.on_button(h, "ventilate")
 
 def test_ventilating_cycle():
@@ -66,14 +64,6 @@ def test_ventilating_cycle():
     st.on_entry(h)
     assert any("vent" in s for s in h.sent)
     time.sleep(0.06)
-    st.on_tick(h)
-
-def test_paused_behavior():
-    h = DummyHandler()
-    st = PausedState()
-    st.on_entry(h)
-    assert "pause" in h.sent
-    time.sleep(0.02)
     st.on_tick(h)
 
 def test_cancelled_auto_reset(monkeypatch):

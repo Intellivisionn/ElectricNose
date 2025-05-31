@@ -11,7 +11,7 @@ BUTTON_PINS = {
     "start":     17,
     "ventilate": 22,
     "cancel":    23,
-    "halt":      27,
+    "continue":  27,
 }
 
 async def main():

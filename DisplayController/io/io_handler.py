@@ -14,7 +14,7 @@ from DisplayController.io.io_input_handler import IButtonInput
 from DisplayController.io.io_interfaces import IIOHandler
 from DisplayController.io.state_machine  import (
     IdleState, LoadingState, PredictingState,
-    VentilatingState, PausedState, CancelledState
+    VentilatingState, CancelledState
 )
 
 
@@ -32,7 +32,7 @@ class IOHandler(BaseDataClient, IIOHandler):
         use_hdmi: bool = False,
         loading_duration: float = 250.0,
         ventilation_duration: float = 300.0,
-        keepalive: float = 10.0
+        keepalive: float = 5.0
     ):
         super().__init__(name, connection)
         self._button_input        = button_input
@@ -131,17 +131,11 @@ class IOHandler(BaseDataClient, IIOHandler):
             { "text": "Press START to begin", "color": [0,255,0]     },
         ])
 
-    def send_paused(self):
-        self.send_message("PAUSED", [
-            { "text": "The process is halted.",     "color": [255,255,0] },
-            { "text": "Press any button to resume", "color": [200,200,200] },
-        ])
-
     def send_loading(self, remaining: int):
         dots = "." * ((int(time.time()) % 3) + 1)
         self.send_message("LOADING" + dots, [
-            { "text": f"{remaining} seconds remaining", "color": [200,200,255] },
             { "text": "Detecting aroma",                "color": [150,150,255] },
+            { "text": f"{remaining} seconds remaining", "color": [200,200,255] },
         ])
 
     def send_prediction(self, scent: str, confidence: float):
@@ -155,6 +149,7 @@ class IOHandler(BaseDataClient, IIOHandler):
         self.send_message("PREDICTION RESULT", [
             { "text": scent.upper(),               "color": [255,255,255] },
             { "text": f"Confidence {pct:.1f}%",   "color": color         },
+            { "text": "Press CONTINUE to proceed", "color": [200,200,200] },
         ])
 
     def send_ventilation_timer(self, remaining: int):
@@ -226,10 +221,9 @@ class IOHandler(BaseDataClient, IIOHandler):
 
         # prediction messages
         elif "scent" in payload and "confidence" in payload:
-            # record last‐seen timestamp
-            self._last_heartbeat = time.time()
-            # only display while in PredictingState
             if isinstance(self._state, PredictingState):
+                self._last_prediction = (payload["scent"], payload["confidence"])
+                self._last_heartbeat = time.time()
                 self.send_prediction(payload["scent"], payload["confidence"])
 
     def _on_button(self, name: str):

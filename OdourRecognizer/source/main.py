@@ -93,7 +93,7 @@ class Predictor(BaseDataClient):
         print("[predictor] subscribed to state and sensor_readings")
 
         # Only create prediction loop task
-        asyncio.create_task(self._prediction_loop())
+        asyncio.create_task(self.send_prediction())
 
         # and stay alive
         while True:
@@ -121,8 +121,7 @@ class Predictor(BaseDataClient):
                 print(f"[Collector] Received from {frm}: {payload}")
                 print(f"[Collector] Data length: {len(self.data)}")
 
-    async def _prediction_loop(self):
-        loop = asyncio.get_event_loop()
+    async def send_prediction(self):
         while True:
             # wait until IOHandler switches to PredictingState
             state = await self._state_q.get()
@@ -130,35 +129,14 @@ class Predictor(BaseDataClient):
                 continue
 
             print("[predictor] entering prediction phase")
-
-            # Start prediction in background thread
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(self._process_prediction, self.data, os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"))
-                
-                # PHASE 1: Send "unsure" until prediction is ready
-                while not future.done():
-                    await self.connection.send(
-                        "topic:prediction",
-                        {"scent": "unsure", "confidence": 0.0}
-                    )
-                    await asyncio.sleep(0.5)
-
-                # Get prediction result
-                try:
-                    prediction_result = future.result()
-                    
-                    if prediction_result:
-                        # PHASE 2: Send actual prediction for 10s
-                        t1 = loop.time()
-                        while loop.time() - t1 < 10.0:
-                            await self.connection.send(
-                                "topic:prediction",
-                                {"scent": prediction_result[0], "confidence": float(prediction_result[1])}
-                            )
-                            await asyncio.sleep(0.5)
-                        print(f"[predictor] prediction complete: {prediction_result}")
-                except Exception as e:
-                    print(f"[predictor] Error during prediction: {str(e)}")
+            
+            prediction = self.predict(self.data, os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"))
+            if prediction:
+                await self.connection.send(
+                    "topic:prediction",
+                    {"scent": prediction[0], "confidence": float(prediction[1])}
+                )
+                print(f"[predictor] prediction complete: {prediction}")
 
             print("[predictor] prediction phase complete — waiting for next PredictingState")
 
@@ -168,7 +146,7 @@ class Predictor(BaseDataClient):
                 if new_state != "PredictingState":
                     break
 
-    def _process_prediction(self, data, models_path):
+    def predict(self, data, models_path):
         """Run the prediction processing in a separate thread"""
         try:
             recognizer = RecognizerManager(models_folder_path=models_path)
