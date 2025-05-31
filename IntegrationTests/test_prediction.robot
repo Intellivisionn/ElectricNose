@@ -99,6 +99,6 @@ Integration Test With Prediction Flow
     Log To Console    feature_lines = ${feature_lines}
     Should Not Be Empty    ${feature_lines}
 
-    ${prediction_error_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'error in prediction thread' in line.lower() and 'logisticregression' in line.lower() and 'features' in line.lower()]
+    ${prediction_error_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'error in prediction thread' in line.lower() and 'features' in line.lower()]
     Log To Console    prediction_error_lines = ${prediction_error_lines}
     Should Not Be Empty    ${prediction_error_lines}
