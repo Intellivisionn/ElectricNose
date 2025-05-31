@@ -1,6 +1,6 @@
-# ElectricNose System
+# ElectronicNose System
 
-The **ElectricNose** project is a sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
+The **ElectronicNose** project is a sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
 
 It consists of these components:
 
@@ -17,7 +17,7 @@ It consists of these components:
 ## 📦 Repository Structure
 
 ```
-ElectricNose/
+ElectronicNose/
 ├── SensorReader/                # Sensor data collection module
 ├── DisplayController/           # Real-time visualization module
 ├── DataCollector/               # Data logging module
@@ -71,7 +71,7 @@ Pygame-based fullscreen Real-time visualization + IO component, designed for PiT
 ```bash
 cd DisplayController/
 source venv/bin/activate
-sudo python adafruit-pitft.py --display=28r --rotation=270 --install-type=console
+sudo python Raspberry-Pi-Installer-Scripts/adafruit-pitft.py --display=28r --rotation=270 --install-type=console
 
 #check devices:
 ls -l /dev/fb*
@@ -205,7 +205,7 @@ sudo systemctl start recognizer.service
 ## 🔥 Usage Tips
 
 - **Sensor data JSON:**  
-  `/home/admin/ElectricNose/SensorReader/sensor_data.json`
+  `/home/admin/ElectronicNose/SensorReader/sensor_data.json`
 
 - **Service Logs:**  
   Check logs via:
@@ -247,10 +247,16 @@ Example sensor data:
       "CO2": 400,
       "TVOC": 10
     },
-    "Grove": {
-      "Gas": 350
-    }
-  }
+    "GroveGasSensor": {
+        "NO2": 171,
+        "Ethanol": 152,
+        "VOC": 109,
+        "CO": 170,
+        "0x04": 592,
+        "0x08": 663
+    },
+    "timestamp": "2025-05-16T23:47:54.919315"
+  },
 ]
 ```
 
@@ -281,4 +287,4 @@ See the [LICENSE](./LICENSE) file for details.
 
 ---
 
-**Developed for the Electric Nose Project — 4th Semester, Spring 2025.**
+**Developed for the Electronic Nose Project — 4th Semester, Spring 2025.**

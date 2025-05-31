@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=admin
-WorkingDirectory=/home/admin/ElectricNose/DisplayController
-ExecStart=/bin/bash /home/admin/ElectricNose/system-services/io_service.sh
+WorkingDirectory=/home/admin/ElectronicNose/DisplayController
+ExecStart=/bin/bash /home/admin/ElectronicNose/system-services/io_service.sh
 Restart=always
 RestartSec=5
 StandardOutput=append:/var/log/io_service.log

@@ -1,3 +1,9 @@
 [submodule "DisplayController/Raspberry-Pi-Installer-Scripts"]
 	path = DisplayController/Raspberry-Pi-Installer-Scripts
 	url = https://github.com/adafruit/Raspberry-Pi-Installer-Scripts
+[submodule "ModelTraining"]
+	path = ModelTraining
+	url = https://github.com/Intellivisionn/ElectronicNose-ModelTraining.git
+[submodule "GraphPlotter"]
+	path = GraphPlotter
+	url = https://github.com/Intellivisionn/ElectronicNose-GraphPlotter.git

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define paths
-REPO_DIR="/home/admin/ElectricNose"
+REPO_DIR="/home/admin/ElectronicNose"
 VENV_DIR="$REPO_DIR/SensorReader/venv/bin/activate"
 PYTHON_SCRIPT="$REPO_DIR/main.py"
 LOG_FILE="$REPO_DIR/sensor_service.log"
