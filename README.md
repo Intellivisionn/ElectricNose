@@ -23,7 +23,7 @@ ElectricNose/
 ├── DataCollector/               # Data logging module
 ├── DataCommunicator/            # Communication beacon
 ├── GraphPlotter/                # Plotting graphs to understand data
-├── ModelTraining/               # Traing the ML model
+├── ModelTraining/               # Train the ML model
 ├── IntegrationTests/            # Robot Framework integration test for system modules
 ├── system-services/             # systemd service files
 ├── README.md                    # (this file)
@@ -172,7 +172,7 @@ await self.connection.subscribe('sensor_readings')
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip python3-venv python3-pygame libsdl2-dev libsdl2-ttf-dev
+sudo apt install python3 python3-pip python3-venv libsdl2-dev libsdl2-ttf-dev
 ```
 
 ---
