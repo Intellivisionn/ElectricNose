@@ -19,25 +19,6 @@ Both clients use:
 - `WebSocketConnection` — a WebSocket-based connection to the broker.
 - `BaseDataClient` — a base class that manages the client lifecycle and handles incoming messages.
 
-## Usage
-
-### 1. Start the DataCommunicator
-
-The DataCommunicator BrokerServer needs to be running.
-
-### 2. Run the script
-
-```bash
-python your_script.py
-```
-
-This will start both the **sensor** and **collector** clients and connect them to the broker at:
-
-```
-ws://localhost:8765
-```
-so it is expected that the DataCommunicator is running
-
 ## Full Example Code
 
 ```python
