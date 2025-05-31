@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=admin
-WorkingDirectory=/home/admin/ElectricNose/SensorReader
-ExecStart=/bin/bash /home/admin/ElectricNose/system-services/sensor_service.sh
+WorkingDirectory=/home/admin/ElectronicNose/SensorReader
+ExecStart=/bin/bash /home/admin/ElectronicNose/system-services/sensor_service.sh
 Restart=always
 RestartSec=5
 StandardOutput=append:/var/log/sensor_service.log

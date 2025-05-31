@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define paths
-REPO_DIR="/home/admin/ElectricNose"
+REPO_DIR="/home/admin/ElectronicNose"
 VENV_DIR="$REPO_DIR/DisplayController/venv/bin/activate"
 LOG_FILE="$REPO_DIR/communicator.log"
 

@@ -76,30 +76,29 @@ Integration Test With Prediction Flow
     Terminate All Processes
     Sleep    5s
 
+
     ${log_path}=    Normalize Path    ${PROJECT_ROOT}/IntegrationTests/output
+
     ${matches}=     Glob              ${log_path}/*.log
+    Log To Console    matches = ${matches}
+
+    Log To Console    log_path = ${log_path}
     Should Not Be Empty    ${matches}
 
-    TRY
-        ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
-        @{log_lines}=    Split String    ${display_log_content}    \n
+    ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
+    @{log_lines}=    Split String    ${display_log_content}    \n
 
-        ${prediction_lines}=    Evaluate    [line for line in ${log_lines} if 'prediction' in line.lower()]
-        Should Not Be Empty    ${prediction_lines}
+    ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'analyzing' in line.lower()]
+    Log To Console    unsure_lines = ${unsure_lines}
+    Should Not Be Empty    ${unsure_lines}
 
-        ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'unsure' in line.lower()]
-        Should Not Be Empty    ${unsure_lines}
+    ${recognizer_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/recognizer.log    encoding=UTF-8
+    @{recognizer_log_lines}=    Split String    ${recognizer_log_content}    \n
 
-        ${confidence_lines}=    Evaluate    [line for line in ${log_lines} if 'confidence' in line.lower()]
-        Should Not Be Empty    ${confidence_lines}
-    EXCEPT    AS    ${error}
-        Log To Console    Test failed with error: ${error}
-        Log To Console    Displaying contents of log files:
-        ${log_files}=    List Files In Directory    ${PROJECT_ROOT}/IntegrationTests/output    pattern=*.log
-        FOR    ${log_file}    IN    @{log_files}
-            ${log_content}=    Get File    ${log_file}    encoding=UTF-8
-            Log To Console    Contents of ${log_file}:
-            Log To Console    ${log_content}
-        END
-        Fail    Test failed due to: ${error}
-    END
+    ${feature_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'prediction phase' in line.lower() or 'features' in line.lower()]
+    Log To Console    feature_lines = ${feature_lines}
+    Should Not Be Empty    ${feature_lines}
+
+    ${feature_lines}=    Evaluate    [line for line in ${recognizer_log_lines} if 'entering prediction phase' in line.lower()]
+    Log To Console    feature_lines = ${feature_lines}
+    Should Not Be Empty    ${feature_lines}

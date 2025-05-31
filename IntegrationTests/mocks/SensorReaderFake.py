@@ -9,7 +9,7 @@ from IntegrationTests.mocks.GroveFake import GroveGasSensor
 from SensorReader.main import BaseSensorReader, SensorReaderClient
 from IntegrationTests.mocks.FakeSensorDataLoader import FakeSensorDataLoader
 
-class FakeElectricNoseSensorReader(BaseSensorReader):
+class FakeElectronicNoseSensorReader(BaseSensorReader):
     def __init__(self, output_path, sleep_interval=2):
         loader = FakeSensorDataLoader(Path(__file__).parent / "data.json")
         sensors = [BME680Sensor(loader), SGP30Sensor(loader), GroveGasSensor(loader)]
@@ -18,7 +18,7 @@ class FakeElectricNoseSensorReader(BaseSensorReader):
 if __name__ == "__main__":
     project_dir = Path(__file__).resolve().parent
     output_path = project_dir / "sensor_data.json"
-    reader = FakeElectricNoseSensorReader(output_path, sleep_interval=1)
+    reader = FakeElectronicNoseSensorReader(output_path, sleep_interval=1)
 
     uri = os.getenv('BROKER_URI', 'ws://localhost:8765')
     client = SensorReaderClient("sensor", uri, reader)

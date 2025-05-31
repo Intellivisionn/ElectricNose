@@ -1,6 +1,6 @@
-# ElectricNose System
+# ElectronicNose System
 
-The **ElectricNose** project is a sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
+The **ElectronicNose** project is a sensing system designed to collect, process, and visualize environmental data in real-time, developed as a semester project in Spring 2025.
 
 It consists of these components:
 
@@ -10,17 +10,20 @@ It consists of these components:
 - **DataCommunicator** - Allows communication between different components
 - **OdourRecognizer** - The ML module making the odour classification possible.
 - **GraphPlotter** - Plot graphs using the collected sensor information.
+- **ModelTraining** - Training the ML module for OdourRecognition improvements
 
 ---
 
 ## 📦 Repository Structure
 
 ```
-ElectricNose/
+ElectronicNose/
 ├── SensorReader/                # Sensor data collection module
 ├── DisplayController/           # Real-time visualization module
 ├── DataCollector/               # Data logging module
 ├── DataCommunicator/            # Communication beacon
+├── GraphPlotter/                # Plotting graphs to understand data
+├── ModelTraining/               # Train the ML model
 ├── IntegrationTests/            # Robot Framework integration test for system modules
 ├── system-services/             # systemd service files
 ├── README.md                    # (this file)
@@ -46,44 +49,49 @@ Python module that continuously collects environmental readings from various sen
 
 ```bash
 cd SensorReader
+python -m venv venv
 source venv/bin/activate
-python3 main.py
-```
-
-**Run as a service:**
-
-```bash
-sudo cp services/sensor.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable sensor.service
-sudo systemctl start sensor.service
+pip install -r requirements.txt
+python main.py
 ```
 
 ---
 
 ### 🎥 DisplayController
 
-Pygame-based fullscreen visualization of live sensor data, designed for HDMI-connected or PiTFT displays.
+Pygame-based fullscreen Real-time visualization + IO component, designed for PiTFT display.
 
 - Dynamically scaled fonts
-- HDMI/Small screen toggle
+- HDMI/PiTFT screen toggle
 - systemd service: `display.service`
 - JSON payload socket API for custom messages
 
 **Start manually:**
 
 ```bash
-cd DisplayController
-python3 hdmi_pygame.py
+cd DisplayController/
+source venv/bin/activate
+sudo python Raspberry-Pi-Installer-Scripts/adafruit-pitft.py --display=28r --rotation=270 --install-type=console
+
+#check devices:
+ls -l /dev/fb*
+ls -l /dev/dri/*
+dmesg | grep -i 'drm\|vc4'
+
+#dont forget to:
+sudo chmod 666 /dev/dri/card2
+sudo chmod 666 /dev/dri/renderD128
+
+python display/display_main.py
 ```
 
-**Run as a service:**
-
+In a different terminal:
 ```bash
-sudo cp services/display.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable display.service
-sudo systemctl start display.service
+cd DisplayController/
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python io/io_main.py
 ```
 
 ---
@@ -96,15 +104,17 @@ Process that reads sensor data every few seconds and archives it with timestamps
 - Customizable intervals
 - Saves output JSON files per scent capture session
 
-**Start manually:**
+**Use it:**
 
 ```bash
-cd DataReader
+cd DataCollector
+python -m venv venv
 source /venv/bin/activate
-python3 main.py
+pip install -r requirements.txt
+python source/data_collector.py
 ```
 
-You'll be prompted for a "scent" name, and a file like `mint_20250420_152010.json` will be saved inside `DataReader/savedData/`.
+You'll be prompted for a "scent" name, and a file like `mint_20250420_152010.json` will be saved inside `DataCollector/savedData/` (can differ according to the selected method in the Manager class)
 
 ---
 
@@ -113,8 +123,8 @@ You'll be prompted for a "scent" name, and a file like `mint_20250420_152010.jso
 The **DataCommunicator** is a lightweight, asynchronous WebSocket-based messaging layer that enables decoupled communication between all system modules (SensorReader, DisplayController, DataCollector, etc.).
 
 It uses a **publish-subscribe model**:
-- Clients can **send** to topics (e.g., `"topic:sensor_readings"`)
-- Other clients **subscribe** to receive those topic messages
+- Clients can **send** to topics or their client name (e.g., `"topic:sensor_readings"`)
+- Other clients **subscribe** to receive those messages
 - A central **MessageBrokerServer** routes messages and handles registration
 
 **Features:**
@@ -125,19 +135,22 @@ It uses a **publish-subscribe model**:
 - Thread-safe integration into long-running UI or hardware loops
 
 **Available topics:**
-- `sensor_readings` – Data emitted from `SensorReader`
-- `io_state_updates` – Published by `IOHandler`, consumed by `DisplayController`, `OdourRecognizer`, etc.
+- `topic:sensor` – Data emitted from `SensorReader`, consumed by DataCollector, OdourRecognizer, etc.
+- `topic:states` – Published by `IOHandler`, consumed by `DisplayController`, `OdourRecognizer`, etc.
 
 **Example Pub/Sub Flow:**
 ```
-SensorReader → topic:sensor_readings → DataCollector
-IOHandler → topic:io_state_updates → DisplayController, OdourRecognizer
+SensorReader → topic:sensor → DataCollector
+IOHandler → topic:states → DisplayController, OdourRecognizer
 ```
 
 **Run the message broker:**
 ```bash
 cd DataCommunicator
-python3 MessageBrokerServer.py
+python -m venv venv
+source /venv/bin/activate
+pip install -r requirements.txt
+python MessageBrokerServer.py
 ```
 
 **Client Example:**
@@ -152,14 +165,14 @@ await self.connection.subscribe('sensor_readings')
 
 - Raspberry Pi 4 / Linux system
 - Python 3.7+
-- HDMI or small TFT screen
+- small TFT screen
 - Basic Linux terminal knowledge
 
 ### Install Dependencies (System-wide)
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip python3-venv python3-pygame libsdl2-dev libsdl2-ttf-dev
+sudo apt install python3 python3-pip python3-venv libsdl2-dev libsdl2-ttf-dev
 ```
 
 ---
@@ -174,10 +187,17 @@ sudo cp services/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
 
 # Enable and start services
+sudo systemctl enable communicator.service
 sudo systemctl enable sensor.service
 sudo systemctl enable display.service
+sudo systemctl enable io.service
+sudo systemctl enable recognizer.service
+
+sudo systemctl start communicator.service
 sudo systemctl start sensor.service
 sudo systemctl start display.service
+sudo systemctl start io.service
+sudo systemctl start recognizer.service
 ```
 
 ---
@@ -185,7 +205,7 @@ sudo systemctl start display.service
 ## 🔥 Usage Tips
 
 - **Sensor data JSON:**  
-  `/home/admin/ElectricNose/SensorReader/sensor_data.json`
+  `/home/admin/ElectronicNose/SensorReader/sensor_data.json`
 
 - **Service Logs:**  
   Check logs via:
@@ -212,7 +232,7 @@ sudo systemctl start display.service
 
 ## 🧐 Sensor Data Example
 
-Example sensor data stored and visualized:
+Example sensor data:
 
 ```json
 [
@@ -227,10 +247,16 @@ Example sensor data stored and visualized:
       "CO2": 400,
       "TVOC": 10
     },
-    "Grove": {
-      "Gas": 350
-    }
-  }
+    "GroveGasSensor": {
+        "NO2": 171,
+        "Ethanol": 152,
+        "VOC": 109,
+        "CO": 170,
+        "0x04": 592,
+        "0x08": 663
+    },
+    "timestamp": "2025-05-16T23:47:54.919315"
+  },
 ]
 ```
 
@@ -261,4 +287,4 @@ See the [LICENSE](./LICENSE) file for details.
 
 ---
 
-**Developed for the Electric Nose Project — 4th Semester, Spring 2025.**
+**Developed for the Electronic Nose Project — 4th Semester, Spring 2025.**

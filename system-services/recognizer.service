@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=admin
-WorkingDirectory=/home/admin/ElectricNose/OdourRecognizer
-ExecStart=/bin/bash /home/admin/ElectricNose/system-services/recognizer_service.sh
+WorkingDirectory=/home/admin/ElectronicNose/OdourRecognizer
+ExecStart=/bin/bash /home/admin/ElectronicNose/system-services/recognizer_service.sh
 Restart=always
 RestartSec=5
 StandardOutput=append:/var/log/recognizer_service.log

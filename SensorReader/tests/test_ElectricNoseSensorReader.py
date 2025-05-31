@@ -6,10 +6,10 @@ import pytest
 sys.modules['DataCommunicator.source.WebSocketConnection'] = MagicMock()
 sys.modules['DataCommunicator.source.BaseDataClient']    = MagicMock()
 sys.modules['smbus2'] = MagicMock()
-from SensorReader.main import ElectricNoseSensorReader
+from SensorReader.main import ElectronicNoseSensorReader
 
 
-class TestElectricNoseSensorReader:
+class TestElectronicNoseSensorReader:
     @pytest.fixture(autouse=True)
     def mock_hardware(self, mocker):
         mocker.patch("SensorReader.main.board", return_value="mocked_i2c")
@@ -18,9 +18,9 @@ class TestElectricNoseSensorReader:
         mocker.patch("SensorReader.main.SGP30Sensor", return_value=MagicMock())
         mocker.patch("SensorReader.main.GroveGasSensor", return_value=MagicMock())
 
-    def test_electric_nose_sensor_reader_read_and_save_once(self, mocker):
+    def test_electronic_nose_sensor_reader_read_and_save_once(self, mocker):
         output_path = "fake_output.json"
-        sensor_reader = ElectricNoseSensorReader(output_path)
+        sensor_reader = ElectronicNoseSensorReader(output_path)
 
         mocker.patch.object(sensor_reader.manager, 'read_all', return_value={
 
@@ -81,9 +81,9 @@ class TestElectricNoseSensorReader:
         assert expected_lines == lines[:len(expected_lines)]
 
 
-    def test_electric_nose_sensor_reader_read_and_save_once_empty_read_all(self, mocker):
+    def test_electronic_nose_sensor_reader_read_and_save_once_empty_read_all(self, mocker):
         output_path = "fake_output.json"
-        sensor_reader = ElectricNoseSensorReader(output_path)
+        sensor_reader = ElectronicNoseSensorReader(output_path)
 
         mocker.patch.object(sensor_reader.manager, 'read_all', return_value={})
 
@@ -102,9 +102,9 @@ class TestElectricNoseSensorReader:
         assert expected_lines == lines[:len(expected_lines)]
 
 
-    def test_electric_nose_sensor_reader_read_and_save_once_open_was_called(self, mocker):
+    def test_electronic_nose_sensor_reader_read_and_save_once_open_was_called(self, mocker):
         output_path = "fake_output.json"
-        sensor_reader = ElectricNoseSensorReader(output_path)
+        sensor_reader = ElectronicNoseSensorReader(output_path)
 
         mocker.patch.object(sensor_reader.manager, 'read_all', return_value={})
 

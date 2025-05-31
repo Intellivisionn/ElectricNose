@@ -51,26 +51,40 @@ class LoadingState(State):
 
     @log_call
     def on_button(self, handler, name):
-        if name == "halt":
-            handler.change_state(PausedState())
-        elif name == "cancel":
+        if name == "cancel":
             handler.change_state(CancelledState())
-        elif name == "ventilate":
-            handler.change_state(VentilatingState())
 
 class PredictingState(State):
     @log_call
     def on_entry(self, handler):
-        handler._start_predictor()
+        handler._last_prediction = None
+        handler._last_heartbeat = 0 # start now
+        self._send_unsure(handler)
+
+    def _send_unsure(self, handler):
+        handler.send_message("PREDICTING", [
+            { "text": "Analyzing...",   "color": [255, 255, 255] },
+            { "text": "Please wait!", "color": [255, 255, 255] },
+        ])
+
+    @log_call
+    def on_tick(self, handler):
+        if handler._last_prediction:
+            # Re-send prediction if keepalive interval passed
+            if time.time() - handler._last_heartbeat > handler.keepalive:
+                scent, confidence = handler._last_prediction
+                handler.send_prediction(scent, confidence)
+                handler._last_heartbeat = time.time()
+        else:
+            # Re-send UNSURE if no prediction yet
+            if time.time() - handler._last_heartbeat > handler.keepalive:
+                self._send_unsure(handler)
+                handler._last_heartbeat = time.time()
 
     @log_call
     def on_button(self, handler, name):
-        if name == "cancel":
-            handler.change_state(CancelledState())
-        elif name == "halt":
-            handler.change_state(PausedState())
-        elif name == "ventilate":
-            handler.change_state(VentilatingState())
+        if name == "continue":
+            handler.change_state(IdleState())
 
 class VentilatingState(State):
     @log_call
@@ -93,26 +107,6 @@ class VentilatingState(State):
     def on_button(self, handler, name):
         if name == "cancel":
             handler.change_state(CancelledState())
-        elif name == "halt":
-            handler.change_state(PausedState())
-
-class PausedState(State):
-    @log_call
-    def on_entry(self, handler):
-        handler._stop_predictor()
-        handler.send_paused()
-        handler._last_heartbeat = time.time()
-
-    @log_call
-    def on_tick(self, handler):
-        if time.time() - handler._last_heartbeat > handler.keepalive:
-            handler.send_paused()
-            handler._last_heartbeat = time.time()
-
-    @log_call
-    def on_button(self, handler, name):
-        # any button returns to ready
-        handler.change_state(IdleState())
 
 class CancelledState(State):
     @log_call
@@ -123,7 +117,7 @@ class CancelledState(State):
         handler.send_message("Cancelled", ["Operation was cancelled."])
         # bookmark the time so we can re-send every keepalive
         #handler._last_heartbeat = time.time()
-        threading.Timer(10, lambda: handler.change_state(IdleState())).start()
+        threading.Timer(5, lambda: handler.change_state(IdleState())).start()
 
     @log_call
     def on_tick(self, handler):
@@ -131,10 +125,3 @@ class CancelledState(State):
         if time.time() - handler._last_heartbeat > handler.keepalive:
             handler.send_message("Cancelled", ["Operation was cancelled."])
             handler._last_heartbeat = time.time()
-
-    @log_call
-    def on_button(self, handler, name):
-        # only START will actually leave Cancelled
-        if name == "start":
-            handler.change_state(LoadingState())
-        # all other buttons are ignored here to keep the "Cancelled" message up

@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=admin
-WorkingDirectory=/home/admin/ElectricNose/DisplayController
-ExecStart=/usr/bin/python3 /home/admin/ElectricNose/DisplayController/display/display_main.py
+WorkingDirectory=/home/admin/ElectronicNose/DisplayController
+ExecStart=/usr/bin/python3 /home/admin/ElectronicNose/DisplayController/display/display_main.py
 Restart=always
 RestartSec=5
 StandardOutput=append:/var/log/display_service.log

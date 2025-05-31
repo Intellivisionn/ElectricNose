@@ -37,7 +37,7 @@ class BaseSensorReader:
             f.write(sensor_json)
 
 
-class ElectricNoseSensorReader(BaseSensorReader):
+class ElectronicNoseSensorReader(BaseSensorReader):
     def __init__(self, output_path, sleep_interval=2):
         i2c = board.I2C()
         bus = SMBus(1)
@@ -54,11 +54,11 @@ from DataCommunicator.source.BaseDataClient import BaseDataClient
 
 class SensorReaderClient(BaseDataClient):
     """
-    Wraps the ElectricNoseSensorReader in a BaseDataClient to:
+    Wraps the ElectronicNoseSensorReader in a BaseDataClient to:
       1) write JSON to file (as before)
       2) send the same payload to 'collector' over WebSocket
     """
-    def __init__(self, name: str, uri: str, reader: ElectricNoseSensorReader):
+    def __init__(self, name: str, uri: str, reader: ElectronicNoseSensorReader):
         conn = WebSocketConnection(uri)
         super().__init__(name, conn)
         self.reader = reader
@@ -89,7 +89,7 @@ async def main():
     output_path = project_dir / "sensor_data.json"
 
     # existing reader that writes to sensor_data.json
-    reader = ElectricNoseSensorReader(output_path, sleep_interval=2)
+    reader = ElectronicNoseSensorReader(output_path, sleep_interval=2)
 
     # new client that also forwards readings over WebSocket
     client = SensorReaderClient('sensor', uri, reader)
