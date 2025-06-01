@@ -63,7 +63,6 @@ class PredictingState(State):
 
     def _send_unsure(self, handler):
         handler.send_message("PREDICTING", [
-            { "text": "Analyzing...",   "color": [255, 255, 255] },
             { "text": "Please wait!", "color": [255, 255, 255] },
         ])
 
@@ -84,7 +83,7 @@ class PredictingState(State):
     @log_call
     def on_button(self, handler, name):
         if name == "continue":
-            handler.change_state(IdleState())
+            handler.change_state(VentilatingState())
 
 class VentilatingState(State):
     @log_call
