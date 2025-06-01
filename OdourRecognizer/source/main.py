@@ -132,11 +132,12 @@ class Predictor(BaseDataClient):
             
             prediction = self.predict(self.data, os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"))
             if prediction:
-                await self.connection.send(
-                    "topic:prediction",
-                    {"scent": prediction[0], "confidence": float(prediction[1])}
-                )
-                print(f"[predictor] prediction complete: {prediction}")
+                for x in range(0, 5):
+                    await self.connection.send(
+                        "topic:prediction",
+                        {"scent": prediction[0], "confidence": float(prediction[1])}
+                    )
+                    print(f"[predictor] prediction complete: {prediction}")
 
             print("[predictor] prediction phase complete — waiting for next PredictingState")
 
