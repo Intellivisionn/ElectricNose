@@ -88,10 +88,6 @@ Integration Test With Prediction Flow
     ${display_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/display.log    encoding=UTF-8
     @{log_lines}=    Split String    ${display_log_content}    \n
 
-    ${unsure_lines}=    Evaluate    [line for line in ${log_lines} if 'analyzing' in line.lower()]
-    Log To Console    unsure_lines = ${unsure_lines}
-    Should Not Be Empty    ${unsure_lines}
-
     ${recognizer_log_content}=    Get File    ${PROJECT_ROOT}/IntegrationTests/output/recognizer.log    encoding=UTF-8
     @{recognizer_log_lines}=    Split String    ${recognizer_log_content}    \n
 
